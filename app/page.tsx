@@ -1,3 +1,4 @@
+import { TaskList } from "@/components/tasks/TaskList";
 import { type TaskDto, tasksFromDto } from "@/lib/types/task";
 
 async function fetchTasks(): Promise<TaskDto[]> {
@@ -20,11 +21,7 @@ export default async function Home() {
       {tasks.length === 0 ? (
         <p className="mt-4 text-foreground/70">タスクがありません。</p>
       ) : (
-        <ul className="mt-4 list-disc space-y-2 pl-6">
-          {tasks.map((task) => (
-            <li key={task.id}>{task.title}</li>
-          ))}
-        </ul>
+        <TaskList tasks={tasks} />
       )}
     </main>
   );
