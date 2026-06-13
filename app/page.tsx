@@ -1,14 +1,4 @@
-type TaskDto = {
-  id: number;
-  title: string;
-  description: string | null;
-  status: string;
-  priority: string;
-  due_date: string | null;
-  tags: string | null;
-  created_at: string;
-  updated_at: string;
-};
+import { type TaskDto, tasksFromDto } from "@/lib/types/task";
 
 async function fetchTasks(): Promise<TaskDto[]> {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001";
@@ -22,7 +12,7 @@ async function fetchTasks(): Promise<TaskDto[]> {
 }
 
 export default async function Home() {
-  const tasks = await fetchTasks();
+  const tasks = tasksFromDto(await fetchTasks());
 
   return (
     <main className="p-8">
