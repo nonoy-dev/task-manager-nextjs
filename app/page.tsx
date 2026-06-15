@@ -1,16 +1,6 @@
 import { TaskList } from "@/components/tasks/TaskList";
-import { type TaskDto, tasksFromDto } from "@/lib/types/task";
-
-async function fetchTasks(): Promise<TaskDto[]> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001";
-  const res = await fetch(`${baseUrl}/api/tasks`, { cache: "no-store" });
-
-  if (!res.ok) {
-    throw new Error(`タスクの取得に失敗しました (${res.status})`);
-  }
-
-  return res.json();
-}
+import { fetchTasks } from "@/lib/api/tasks";
+import { tasksFromDto } from "@/lib/types/task";
 
 export default async function Home() {
   const tasks = tasksFromDto(await fetchTasks());
