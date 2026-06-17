@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { createTask } from "@/lib/api/tasks";
 import type { TaskPriority, TaskStatus } from "@/lib/types/task";
 
 type FormValues = {
@@ -79,8 +80,10 @@ function fieldClass(hasError: boolean): string {
 export function TaskCreateForm() {
   const [values, setValues] = useState<FormValues>(initialValues);
   const [errors, setErrors] = useState<FormErrors>({});
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  function handleSubmit(event: React.SubmitEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const nextErrors = validateFormValues(values);
@@ -90,6 +93,19 @@ export function TaskCreateForm() {
     }
 
     setErrors({});
+    setSubmitError(null);
+    setIsSubmitting(true);
+
+    try {
+      await createTask(values);
+      setValues(initialValues);
+    } catch (error) {
+      setSubmitError(
+        error instanceof Error ? error.message : "タスクの作成に失敗しました",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -215,11 +231,16 @@ export function TaskCreateForm() {
           )}
         </label>
 
+        {submitError && (
+          <p className="text-sm text-red-600">{submitError}</p>
+        )}
+
         <button
           type="submit"
-          className="w-fit rounded-md bg-foreground px-4 py-2 text-sm text-background"
+          disabled={isSubmitting}
+          className="w-fit rounded-md bg-foreground px-4 py-2 text-sm text-background disabled:opacity-50"
         >
-          作成
+          {isSubmitting ? "作成中..." : "作成"}
         </button>
       </div>
     </form>
