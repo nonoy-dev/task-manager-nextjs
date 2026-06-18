@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { createTask } from "@/lib/api/tasks";
 import type { TaskPriority, TaskStatus } from "@/lib/types/task";
@@ -78,6 +79,7 @@ function fieldClass(hasError: boolean): string {
 }
 
 export function TaskCreateForm() {
+  const router = useRouter();
   const [values, setValues] = useState<FormValues>(initialValues);
   const [errors, setErrors] = useState<FormErrors>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -99,6 +101,7 @@ export function TaskCreateForm() {
     try {
       await createTask(values);
       setValues(initialValues);
+      router.refresh();
     } catch (error) {
       setSubmitError(
         error instanceof Error ? error.message : "タスクの作成に失敗しました",
