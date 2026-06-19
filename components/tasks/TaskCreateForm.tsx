@@ -2,6 +2,14 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import {
+  FormDateField,
+  FormSelect,
+  FormTextArea,
+  FormTextField,
+  TASK_PRIORITY_OPTIONS,
+  TASK_STATUS_OPTIONS,
+} from "@/components/tasks/form";
 import { createTask } from "@/lib/api/tasks";
 import type { TaskPriority, TaskStatus } from "@/lib/types/task";
 
@@ -29,23 +37,6 @@ const TITLE_MAX_LENGTH = 50;
 const DESCRIPTION_MAX_LENGTH = 300;
 const TAGS_MAX_LENGTH = 50;
 
-const statusOptions: { value: TaskStatus; label: string }[] = [
-  { value: "todo", label: "未着手" },
-  { value: "in_progress", label: "進行中" },
-  { value: "done", label: "完了" },
-];
-
-const priorityOptions: { value: TaskPriority; label: string }[] = [
-  { value: "low", label: "低" },
-  { value: "medium", label: "中" },
-  { value: "high", label: "高" },
-];
-
-const labelClass = "block text-sm font-medium";
-const inputClass =
-  "mt-1 w-full rounded-md border border-foreground/20 bg-transparent px-3 py-2 text-sm";
-const inputErrorClass = "border-red-500";
-
 function todayDateString(): string {
   return new Date().toISOString().slice(0, 10);
 }
@@ -72,10 +63,6 @@ function validateFormValues(values: FormValues): FormErrors {
   }
 
   return errors;
-}
-
-function fieldClass(hasError: boolean): string {
-  return hasError ? `${inputClass} ${inputErrorClass}` : inputClass;
 }
 
 export function TaskCreateForm() {
@@ -120,119 +107,70 @@ export function TaskCreateForm() {
       <h2 className="text-lg font-medium">タスク作成</h2>
 
       <div className="mt-4 flex flex-col gap-4">
-        <label>
-          <span className={labelClass}>タイトル</span>
-          <input
-            type="text"
-            className={fieldClass(Boolean(errors.title))}
-            value={values.title}
-            maxLength={TITLE_MAX_LENGTH}
-            onChange={(event) => {
-              setValues((prev) => ({ ...prev, title: event.target.value }));
-              setErrors((prev) => ({ ...prev, title: undefined }));
-            }}
-          />
-          {errors.title && (
-            <p className="mt-1 text-sm text-red-600">{errors.title}</p>
-          )}
-        </label>
+        <FormTextField
+          label="タイトル"
+          value={values.title}
+          maxLength={TITLE_MAX_LENGTH}
+          error={errors.title}
+          onChange={(title) => {
+            setValues((prev) => ({ ...prev, title }));
+            setErrors((prev) => ({ ...prev, title: undefined }));
+          }}
+        />
 
-        <label>
-          <span className={labelClass}>説明</span>
-          <textarea
-            className={fieldClass(Boolean(errors.description))}
-            rows={3}
-            value={values.description}
-            maxLength={DESCRIPTION_MAX_LENGTH}
-            onChange={(event) => {
-              setValues((prev) => ({
-                ...prev,
-                description: event.target.value,
-              }));
-              setErrors((prev) => ({ ...prev, description: undefined }));
-            }}
-          />
-          {errors.description && (
-            <p className="mt-1 text-sm text-red-600">{errors.description}</p>
-          )}
-        </label>
+        <FormTextArea
+          label="説明"
+          value={values.description}
+          maxLength={DESCRIPTION_MAX_LENGTH}
+          error={errors.description}
+          onChange={(description) => {
+            setValues((prev) => ({ ...prev, description }));
+            setErrors((prev) => ({ ...prev, description: undefined }));
+          }}
+        />
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <label>
-            <span className={labelClass}>ステータス</span>
-            <select
-              className={inputClass}
-              value={values.status}
-              onChange={(event) =>
-                setValues((prev) => ({
-                  ...prev,
-                  status: event.target.value as TaskStatus,
-                }))
-              }
-            >
-              {statusOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
+          <FormSelect
+            label="ステータス"
+            value={values.status}
+            options={TASK_STATUS_OPTIONS}
+            onChange={(status) =>
+              setValues((prev) => ({ ...prev, status }))
+            }
+          />
 
-          <label>
-            <span className={labelClass}>優先度</span>
-            <select
-              className={inputClass}
-              value={values.priority}
-              onChange={(event) =>
-                setValues((prev) => ({
-                  ...prev,
-                  priority: event.target.value as TaskPriority,
-                }))
-              }
-            >
-              {priorityOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
+          <FormSelect
+            label="優先度"
+            value={values.priority}
+            options={TASK_PRIORITY_OPTIONS}
+            onChange={(priority) =>
+              setValues((prev) => ({ ...prev, priority }))
+            }
+          />
         </div>
 
-        <label>
-          <span className={labelClass}>期限</span>
-          <input
-            type="date"
-            className={fieldClass(Boolean(errors.dueDate))}
-            value={values.dueDate}
-            min={todayDateString()}
-            onChange={(event) => {
-              setValues((prev) => ({ ...prev, dueDate: event.target.value }));
-              setErrors((prev) => ({ ...prev, dueDate: undefined }));
-            }}
-          />
-          {errors.dueDate && (
-            <p className="mt-1 text-sm text-red-600">{errors.dueDate}</p>
-          )}
-        </label>
+        <FormDateField
+          label="期限"
+          value={values.dueDate}
+          min={todayDateString()}
+          error={errors.dueDate}
+          onChange={(dueDate) => {
+            setValues((prev) => ({ ...prev, dueDate }));
+            setErrors((prev) => ({ ...prev, dueDate: undefined }));
+          }}
+        />
 
-        <label>
-          <span className={labelClass}>タグ（カンマ区切り）</span>
-          <input
-            type="text"
-            className={fieldClass(Boolean(errors.tags))}
-            placeholder="work,urgent"
-            value={values.tags}
-            maxLength={TAGS_MAX_LENGTH}
-            onChange={(event) => {
-              setValues((prev) => ({ ...prev, tags: event.target.value }));
-              setErrors((prev) => ({ ...prev, tags: undefined }));
-            }}
-          />
-          {errors.tags && (
-            <p className="mt-1 text-sm text-red-600">{errors.tags}</p>
-          )}
-        </label>
+        <FormTextField
+          label="タグ（カンマ区切り）"
+          value={values.tags}
+          maxLength={TAGS_MAX_LENGTH}
+          placeholder="work,urgent"
+          error={errors.tags}
+          onChange={(tags) => {
+            setValues((prev) => ({ ...prev, tags }));
+            setErrors((prev) => ({ ...prev, tags: undefined }));
+          }}
+        />
 
         {submitError && (
           <p className="text-sm text-red-600">{submitError}</p>
