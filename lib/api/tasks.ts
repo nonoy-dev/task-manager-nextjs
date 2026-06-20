@@ -22,9 +22,28 @@ function createTaskBody(input: CreateTaskInput) {
   };
 }
 
+function apiBaseUrl(): string {
+  return process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001";
+}
+
 export async function fetchTasks(): Promise<TaskDto[]> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001";
-  const res = await fetch(`${baseUrl}/api/tasks`, { cache: "no-store" });
+  const res = await fetch(`${apiBaseUrl()}/api/tasks`, { cache: "no-store" });
+
+  if (!res.ok) {
+    throw new Error(`タスクの取得に失敗しました (${res.status})`);
+  }
+
+  return res.json();
+}
+
+export async function fetchTask(id: number): Promise<TaskDto> {
+  const res = await fetch(`${apiBaseUrl()}/api/tasks/${id}`, {
+    cache: "no-store",
+  });
+
+  if (res.status === 404) {
+    throw new Error("Task not found");
+  }
 
   if (!res.ok) {
     throw new Error(`タスクの取得に失敗しました (${res.status})`);

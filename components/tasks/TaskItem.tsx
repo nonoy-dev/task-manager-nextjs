@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Task } from "@/lib/types/task";
 
 type TaskItemProps = {
@@ -46,6 +47,14 @@ export function TaskItem({ task }: TaskItemProps) {
       {dueDate && (
         <p className="mt-2 text-sm text-foreground/60">期限: {dueDate}</p>
       )}
+      <div className="mt-4">
+        <Link
+          href={`/tasks/${task.id}/edit`}
+          className="text-sm text-foreground/70 hover:text-foreground hover:underline"
+        >
+          編集
+        </Link>
+      </div>
     </li>
   );
 }
