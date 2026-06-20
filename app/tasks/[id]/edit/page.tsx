@@ -1,0 +1,39 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { fetchTask } from "@/lib/api/tasks";
+import { taskFromDto } from "@/lib/types/task";
+
+type TaskEditPageProps = {
+  params: Promise<{ id: string }>;
+};
+
+export default async function TaskEditPage({ params }: TaskEditPageProps) {
+  const { id } = await params;
+  const taskId = Number(id);
+
+  if (!Number.isInteger(taskId) || taskId <= 0) {
+    notFound();
+  }
+
+  let taskDto;
+  try {
+    taskDto = await fetchTask(taskId);
+  } catch {
+    notFound();
+  }
+
+  const task = taskFromDto(taskDto);
+
+  return (
+    <main className="p-8">
+      <Link
+        href="/"
+        className="text-sm text-foreground/70 hover:text-foreground hover:underline"
+      >
+        ← 一覧に戻る
+      </Link>
+      <h1 className="mt-4 text-2xl font-semibold">タスク編集</h1>
+      <p className="mt-2 text-sm text-foreground/70">{task.title}</p>
+    </main>
+  );
+}
