@@ -87,6 +87,16 @@ export async function updateTask(
   return res.json();
 }
 
+export async function deleteTask(id: number): Promise<void> {
+  const res = await fetch(`/api/tasks/${id}`, {
+    method: "DELETE",
+  });
+
+  if (!res.ok) {
+    throw new Error(`タスクの削除に失敗しました (${res.status})`);
+  }
+}
+
 async function readTaskMutationError(
   res: Response,
   fallback: string,
