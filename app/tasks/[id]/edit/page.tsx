@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { TaskEditForm } from "@/components/tasks/TaskEditForm";
 import { fetchTask } from "@/lib/api/tasks";
 import { taskFromDto } from "@/lib/types/task";
 
@@ -33,7 +34,7 @@ export default async function TaskEditPage({ params }: TaskEditPageProps) {
         ← 一覧に戻る
       </Link>
       <h1 className="mt-4 text-2xl font-semibold">タスク編集</h1>
-      <p className="mt-2 text-sm text-foreground/70">{task.title}</p>
+      <TaskEditForm task={task} />
     </main>
   );
 }

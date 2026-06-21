@@ -19,7 +19,14 @@ export function todayDateString(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-export function validateFormValues(values: TaskFormValues): TaskFormErrors {
+export type ValidateFormOptions = {
+  allowPastDueDate?: boolean;
+};
+
+export function validateFormValues(
+  values: TaskFormValues,
+  options?: ValidateFormOptions,
+): TaskFormErrors {
   const errors: TaskFormErrors = {};
 
   if (!values.title.trim()) {
@@ -36,7 +43,11 @@ export function validateFormValues(values: TaskFormValues): TaskFormErrors {
     errors.tags = `タグは${TAGS_MAX_LENGTH}文字以内で入力してください`;
   }
 
-  if (values.dueDate && values.dueDate < todayDateString()) {
+  if (
+    !options?.allowPastDueDate &&
+    values.dueDate &&
+    values.dueDate < todayDateString()
+  ) {
     errors.dueDate = "期限は今日以降の日付を指定してください";
   }
 

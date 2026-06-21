@@ -1,6 +1,6 @@
 import type { TaskDto, TaskPriority, TaskStatus } from "@/lib/types/task";
 
-export type CreateTaskInput = {
+export type TaskMutationInput = {
   title: string;
   description: string;
   status: TaskStatus;
@@ -9,7 +9,9 @@ export type CreateTaskInput = {
   tags: string;
 };
 
-function createTaskBody(input: CreateTaskInput) {
+export type CreateTaskInput = TaskMutationInput;
+
+function taskMutationBody(input: TaskMutationInput) {
   return {
     task: {
       title: input.title.trim(),
@@ -56,18 +58,41 @@ export async function createTask(input: CreateTaskInput): Promise<TaskDto> {
   const res = await fetch("/api/tasks", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(createTaskBody(input)),
+    body: JSON.stringify(taskMutationBody(input)),
   });
 
   if (!res.ok) {
-    const body = (await res.json().catch(() => null)) as {
-      errors?: string[];
-    } | null;
-    const message =
-      body?.errors?.join(", ") ??
-      `タスクの作成に失敗しました (${res.status})`;
-    throw new Error(message);
+    throw new Error(await readTaskMutationError(res, "タスクの作成に失敗しました"));
   }
 
   return res.json();
+}
+
+export type UpdateTaskInput = TaskMutationInput;
+
+export async function updateTask(
+  id: number,
+  input: UpdateTaskInput,
+): Promise<TaskDto> {
+  const res = await fetch(`/api/tasks/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(taskMutationBody(input)),
+  });
+
+  if (!res.ok) {
+    throw new Error(await readTaskMutationError(res, "タスクの更新に失敗しました"));
+  }
+
+  return res.json();
+}
+
+async function readTaskMutationError(
+  res: Response,
+  fallback: string,
+): Promise<string> {
+  const body = (await res.json().catch(() => null)) as {
+    errors?: string[];
+  } | null;
+  return body?.errors?.join(", ") ?? `${fallback} (${res.status})`;
 }
