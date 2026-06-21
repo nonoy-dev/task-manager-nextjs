@@ -1,4 +1,9 @@
+"use client";
+
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { deleteTask } from "@/lib/api/tasks";
 import type { Task } from "@/lib/types/task";
 
 type TaskItemProps = {
@@ -23,7 +28,30 @@ function formatDueDate(iso: string | null): string | null {
 }
 
 export function TaskItem({ task }: TaskItemProps) {
+  const router = useRouter();
   const dueDate = formatDueDate(task.dueDate);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  async function handleDelete() {
+    if (!window.confirm(`「${task.title}」を削除しますか？`)) {
+      return;
+    }
+
+    setDeleteError(null);
+    setIsDeleting(true);
+
+    try {
+      await deleteTask(task.id);
+      router.refresh();
+    } catch (error) {
+      setDeleteError(
+        error instanceof Error ? error.message : "タスクの削除に失敗しました",
+      );
+    } finally {
+      setIsDeleting(false);
+    }
+  }
 
   return (
     <li className="rounded-lg border border-foreground/10 p-4">
@@ -47,13 +75,26 @@ export function TaskItem({ task }: TaskItemProps) {
       {dueDate && (
         <p className="mt-2 text-sm text-foreground/60">期限: {dueDate}</p>
       )}
-      <div className="mt-4">
+      {deleteError && (
+        <p className="mt-2 text-sm text-red-600">{deleteError}</p>
+      )}
+      <div className="mt-4 flex flex-wrap gap-4">
         <Link
           href={`/tasks/${task.id}/edit`}
           className="text-sm text-foreground/70 hover:text-foreground hover:underline"
         >
           編集
         </Link>
+        <button
+          type="button"
+          disabled={isDeleting}
+          onClick={() => {
+            void handleDelete();
+          }}
+          className="text-sm text-red-600 hover:underline disabled:opacity-50"
+        >
+          {isDeleting ? "削除中..." : "削除"}
+        </button>
       </div>
     </li>
   );
