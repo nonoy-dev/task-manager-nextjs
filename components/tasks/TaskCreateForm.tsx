@@ -11,20 +11,17 @@ import {
   TASK_STATUS_OPTIONS,
 } from "@/components/tasks/form";
 import { createTask } from "@/lib/api/tasks";
-import type { TaskPriority, TaskStatus } from "@/lib/types/task";
+import {
+  DESCRIPTION_MAX_LENGTH,
+  TAGS_MAX_LENGTH,
+  TITLE_MAX_LENGTH,
+  todayDateString,
+  validateFormValues,
+  type TaskFormErrors,
+  type TaskFormValues,
+} from "@/lib/tasks/validateTaskForm";
 
-type FormValues = {
-  title: string;
-  description: string;
-  status: TaskStatus;
-  priority: TaskPriority;
-  dueDate: string;
-  tags: string;
-};
-
-type FormErrors = Partial<Record<keyof FormValues, string>>;
-
-const initialValues: FormValues = {
+const initialValues: TaskFormValues = {
   title: "",
   description: "",
   status: "todo",
@@ -33,42 +30,10 @@ const initialValues: FormValues = {
   tags: "",
 };
 
-const TITLE_MAX_LENGTH = 50;
-const DESCRIPTION_MAX_LENGTH = 300;
-const TAGS_MAX_LENGTH = 50;
-
-function todayDateString(): string {
-  return new Date().toISOString().slice(0, 10);
-}
-
-function validateFormValues(values: FormValues): FormErrors {
-  const errors: FormErrors = {};
-
-  if (!values.title.trim()) {
-    errors.title = "タイトルは必須です";
-  } else if (values.title.length > TITLE_MAX_LENGTH) {
-    errors.title = `タイトルは${TITLE_MAX_LENGTH}文字以内で入力してください`;
-  }
-
-  if (values.description.length > DESCRIPTION_MAX_LENGTH) {
-    errors.description = `説明は${DESCRIPTION_MAX_LENGTH}文字以内で入力してください`;
-  }
-
-  if (values.tags.length > TAGS_MAX_LENGTH) {
-    errors.tags = `タグは${TAGS_MAX_LENGTH}文字以内で入力してください`;
-  }
-
-  if (values.dueDate && values.dueDate < todayDateString()) {
-    errors.dueDate = "期限は今日以降の日付を指定してください";
-  }
-
-  return errors;
-}
-
 export function TaskCreateForm() {
   const router = useRouter();
-  const [values, setValues] = useState<FormValues>(initialValues);
-  const [errors, setErrors] = useState<FormErrors>({});
+  const [values, setValues] = useState<TaskFormValues>(initialValues);
+  const [errors, setErrors] = useState<TaskFormErrors>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 

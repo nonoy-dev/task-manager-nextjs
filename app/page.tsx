@@ -1,10 +1,19 @@
+import { RefreshableErrorBanner } from "@/components/shared/ErrorBanner";
 import { TaskCreateForm } from "@/components/tasks/TaskCreateForm";
 import { TaskList } from "@/components/tasks/TaskList";
 import { fetchTasks } from "@/lib/api/tasks";
-import { tasksFromDto } from "@/lib/types/task";
+import { type Task, tasksFromDto } from "@/lib/types/task";
 
 export default async function Home() {
-  const tasks = tasksFromDto(await fetchTasks());
+  let tasks: Task[] = [];
+  let listError: string | null = null;
+
+  try {
+    tasks = tasksFromDto(await fetchTasks());
+  } catch (error) {
+    listError =
+      error instanceof Error ? error.message : "タスクの取得に失敗しました";
+  }
 
   return (
     <main className="p-8">
@@ -12,7 +21,16 @@ export default async function Home() {
       <div className="mt-4">
         <TaskCreateForm />
       </div>
-      <TaskList tasks={tasks} />
+      {listError ? (
+        <div className="mt-4">
+          <RefreshableErrorBanner
+            title="一覧の取得に失敗しました"
+            message={listError}
+          />
+        </div>
+      ) : (
+        <TaskList tasks={tasks} />
+      )}
     </main>
   );
 }
