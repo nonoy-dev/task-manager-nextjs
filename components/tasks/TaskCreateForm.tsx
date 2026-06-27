@@ -10,7 +10,7 @@ import {
   TASK_PRIORITY_OPTIONS,
   TASK_STATUS_OPTIONS,
 } from "@/components/tasks/form";
-import { createTask } from "@/lib/api/tasks";
+import { createTask, readApiClientError } from "@/lib/api/tasks";
 import {
   DESCRIPTION_MAX_LENGTH,
   TAGS_MAX_LENGTH,
@@ -55,9 +55,7 @@ export function TaskCreateForm() {
       setValues(initialValues);
       router.refresh();
     } catch (error) {
-      setSubmitError(
-        error instanceof Error ? error.message : "タスクの作成に失敗しました",
-      );
+      setSubmitError(readApiClientError(error, "タスクの作成に失敗しました"));
     } finally {
       setIsSubmitting(false);
     }
