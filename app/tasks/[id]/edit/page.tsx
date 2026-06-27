@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { TaskEditForm } from "@/components/tasks/TaskEditForm";
-import { fetchTask } from "@/lib/api/tasks";
+import { fetchTask, isTaskNotFoundError } from "@/lib/api/tasks";
 import { taskFromDto } from "@/lib/types/task";
 
 type TaskEditPageProps = {
@@ -19,8 +19,11 @@ export default async function TaskEditPage({ params }: TaskEditPageProps) {
   let taskDto;
   try {
     taskDto = await fetchTask(taskId);
-  } catch {
-    notFound();
+  } catch (error) {
+    if (isTaskNotFoundError(error)) {
+      notFound();
+    }
+    throw error;
   }
 
   const task = taskFromDto(taskDto);

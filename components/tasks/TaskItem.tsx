@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { deleteTask, updateTask } from "@/lib/api/tasks";
+import { deleteTask, readApiClientError, updateTask } from "@/lib/api/tasks";
 import type { Task, TaskStatus } from "@/lib/types/task";
 
 type TaskItemProps = {
@@ -65,9 +65,7 @@ export function TaskItem({ task }: TaskItemProps) {
       router.refresh();
     } catch (error) {
       setStatusError(
-        error instanceof Error
-          ? error.message
-          : "ステータスの更新に失敗しました",
+        readApiClientError(error, "ステータスの更新に失敗しました"),
       );
     } finally {
       setIsUpdatingStatus(false);
@@ -86,9 +84,7 @@ export function TaskItem({ task }: TaskItemProps) {
       await deleteTask(task.id);
       router.refresh();
     } catch (error) {
-      setDeleteError(
-        error instanceof Error ? error.message : "タスクの削除に失敗しました",
-      );
+      setDeleteError(readApiClientError(error, "タスクの削除に失敗しました"));
     } finally {
       setIsDeleting(false);
     }

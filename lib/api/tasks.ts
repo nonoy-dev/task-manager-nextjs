@@ -14,7 +14,18 @@ export type UpdateTaskInput = TaskMutationInput;
 
 export const TASK_NOT_FOUND_MESSAGE = "Task not found";
 
+export const NETWORK_ERROR_MESSAGE =
+  "ネットワークエラーが発生しました。接続を確認してください。";
+
 const TASKS_API_PATH = "/api/tasks";
+
+export function isTaskNotFoundError(error: unknown): boolean {
+  return error instanceof Error && error.message === TASK_NOT_FOUND_MESSAGE;
+}
+
+export function readApiClientError(error: unknown, fallback: string): string {
+  return error instanceof Error ? error.message : fallback;
+}
 
 function serverTasksUrl(path = ""): string {
   const base = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001";
@@ -25,7 +36,7 @@ function clientTasksUrl(path = ""): string {
   return `${TASKS_API_PATH}${path}`;
 }
 
-function taskMutationBody(input: TaskMutationInput) {
+export function taskMutationBody(input: TaskMutationInput) {
   return {
     task: {
       title: input.title.trim(),
@@ -52,13 +63,24 @@ function fetchTasksError(status: number): Error {
   return new Error(`タスクの取得に失敗しました (${status})`);
 }
 
+async function apiFetch(
+  url: string,
+  init?: RequestInit,
+): Promise<Response> {
+  try {
+    return await fetch(url, init);
+  } catch {
+    throw new Error(NETWORK_ERROR_MESSAGE);
+  }
+}
+
 async function submitTaskMutation(
   url: string,
   method: "POST" | "PATCH",
   input: TaskMutationInput,
   fallback: string,
 ): Promise<TaskDto> {
-  const res = await fetch(url, {
+  const res = await apiFetch(url, {
     method,
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(taskMutationBody(input)),
@@ -72,7 +94,7 @@ async function submitTaskMutation(
 }
 
 export async function fetchTasks(): Promise<TaskDto[]> {
-  const res = await fetch(serverTasksUrl(), { cache: "no-store" });
+  const res = await apiFetch(serverTasksUrl(), { cache: "no-store" });
 
   if (!res.ok) {
     throw fetchTasksError(res.status);
@@ -82,7 +104,7 @@ export async function fetchTasks(): Promise<TaskDto[]> {
 }
 
 export async function fetchTask(id: number): Promise<TaskDto> {
-  const res = await fetch(serverTasksUrl(`/${id}`), { cache: "no-store" });
+  const res = await apiFetch(serverTasksUrl(`/${id}`), { cache: "no-store" });
 
   if (res.status === 404) {
     throw new Error(TASK_NOT_FOUND_MESSAGE);
@@ -117,11 +139,13 @@ export async function updateTask(
 }
 
 export async function deleteTask(id: number): Promise<void> {
-  const res = await fetch(clientTasksUrl(`/${id}`), {
+  const res = await apiFetch(clientTasksUrl(`/${id}`), {
     method: "DELETE",
   });
 
   if (!res.ok) {
-    throw new Error(`タスクの削除に失敗しました (${res.status})`);
+    throw new Error(
+      await mutationErrorMessage(res, "タスクの削除に失敗しました"),
+    );
   }
 }

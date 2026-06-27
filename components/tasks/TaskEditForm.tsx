@@ -11,7 +11,7 @@ import {
   TASK_PRIORITY_OPTIONS,
   TASK_STATUS_OPTIONS,
 } from "@/components/tasks/form";
-import { updateTask } from "@/lib/api/tasks";
+import { readApiClientError, updateTask } from "@/lib/api/tasks";
 import {
   DESCRIPTION_MAX_LENGTH,
   TAGS_MAX_LENGTH,
@@ -64,9 +64,7 @@ export function TaskEditForm({ task }: TaskEditFormProps) {
       await updateTask(task.id, values);
       router.push("/");
     } catch (error) {
-      setSubmitError(
-        error instanceof Error ? error.message : "タスクの更新に失敗しました",
-      );
+      setSubmitError(readApiClientError(error, "タスクの更新に失敗しました"));
     } finally {
       setIsSubmitting(false);
     }
