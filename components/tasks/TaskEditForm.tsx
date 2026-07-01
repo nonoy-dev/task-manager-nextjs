@@ -21,22 +21,12 @@ import {
   type TaskFormErrors,
   type TaskFormValues,
 } from "@/lib/tasks/validateTaskForm";
+import { valuesFromTask } from "@/lib/tasks/valuesFromTask";
 import type { Task } from "@/lib/types/task";
 
 type TaskEditFormProps = {
   task: Task;
 };
-
-function valuesFromTask(task: Task): TaskFormValues {
-  return {
-    title: task.title,
-    description: task.description ?? "",
-    status: task.status,
-    priority: task.priority,
-    dueDate: task.dueDate ? task.dueDate.slice(0, 10) : "",
-    tags: task.tagList.join(","),
-  };
-}
 
 export function TaskEditForm({ task }: TaskEditFormProps) {
   const router = useRouter();
