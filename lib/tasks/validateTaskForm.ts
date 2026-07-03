@@ -1,13 +1,6 @@
-import type { TaskPriority, TaskStatus } from "@/lib/types/task";
+import type { TaskMutationInput } from "@/lib/api/tasks";
 
-export type TaskFormValues = {
-  title: string;
-  description: string;
-  status: TaskStatus;
-  priority: TaskPriority;
-  dueDate: string;
-  tags: string;
-};
+export type TaskFormValues = TaskMutationInput;
 
 export type TaskFormErrors = Partial<Record<keyof TaskFormValues, string>>;
 

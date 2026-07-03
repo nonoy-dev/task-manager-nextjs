@@ -1,7 +1,7 @@
 import { RefreshableErrorBanner } from "@/components/shared/ErrorBanner";
 import { TaskCreateForm } from "@/components/tasks/TaskCreateForm";
 import { TaskList } from "@/components/tasks/TaskList";
-import { fetchTasks } from "@/lib/api/tasks";
+import { fetchTasks, readApiClientError } from "@/lib/api/tasks";
 import { type Task, tasksFromDto } from "@/lib/types/task";
 
 export default async function Home() {
@@ -11,8 +11,7 @@ export default async function Home() {
   try {
     tasks = tasksFromDto(await fetchTasks());
   } catch (error) {
-    listError =
-      error instanceof Error ? error.message : "タスクの取得に失敗しました";
+    listError = readApiClientError(error, "タスクの取得に失敗しました");
   }
 
   return (

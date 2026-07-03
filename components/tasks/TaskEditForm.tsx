@@ -11,7 +11,7 @@ import {
   TASK_PRIORITY_OPTIONS,
   TASK_STATUS_OPTIONS,
 } from "@/components/tasks/form";
-import { updateTask } from "@/lib/api/tasks";
+import { readApiClientError, updateTask } from "@/lib/api/tasks";
 import {
   DESCRIPTION_MAX_LENGTH,
   TAGS_MAX_LENGTH,
@@ -21,22 +21,12 @@ import {
   type TaskFormErrors,
   type TaskFormValues,
 } from "@/lib/tasks/validateTaskForm";
+import { valuesFromTask } from "@/lib/tasks/valuesFromTask";
 import type { Task } from "@/lib/types/task";
 
 type TaskEditFormProps = {
   task: Task;
 };
-
-function valuesFromTask(task: Task): TaskFormValues {
-  return {
-    title: task.title,
-    description: task.description ?? "",
-    status: task.status,
-    priority: task.priority,
-    dueDate: task.dueDate ? task.dueDate.slice(0, 10) : "",
-    tags: task.tagList.join(","),
-  };
-}
 
 export function TaskEditForm({ task }: TaskEditFormProps) {
   const router = useRouter();
@@ -64,9 +54,7 @@ export function TaskEditForm({ task }: TaskEditFormProps) {
       await updateTask(task.id, values);
       router.push("/");
     } catch (error) {
-      setSubmitError(
-        error instanceof Error ? error.message : "タスクの更新に失敗しました",
-      );
+      setSubmitError(readApiClientError(error, "タスクの更新に失敗しました"));
     } finally {
       setIsSubmitting(false);
     }
