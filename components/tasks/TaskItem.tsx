@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { deleteTask, updateTask } from "@/lib/api/tasks";
+import { deleteTask, readApiClientError, updateTask } from "@/lib/api/tasks";
+import { valuesFromTask } from "@/lib/tasks/valuesFromTask";
 import type { Task, TaskStatus } from "@/lib/types/task";
 
 type TaskItemProps = {
@@ -33,17 +34,6 @@ function nextStatus(current: TaskStatus): TaskStatus {
   return "todo";
 }
 
-function valuesFromTask(task: Task) {
-  return {
-    title: task.title,
-    description: task.description ?? "",
-    status: task.status,
-    priority: task.priority,
-    dueDate: task.dueDate ? task.dueDate.slice(0, 10) : "",
-    tags: task.tagList.join(","),
-  };
-}
-
 export function TaskItem({ task }: TaskItemProps) {
   const router = useRouter();
   const dueDate = formatDueDate(task.dueDate);
@@ -65,9 +55,7 @@ export function TaskItem({ task }: TaskItemProps) {
       router.refresh();
     } catch (error) {
       setStatusError(
-        error instanceof Error
-          ? error.message
-          : "ステータスの更新に失敗しました",
+        readApiClientError(error, "ステータスの更新に失敗しました"),
       );
     } finally {
       setIsUpdatingStatus(false);
@@ -86,9 +74,7 @@ export function TaskItem({ task }: TaskItemProps) {
       await deleteTask(task.id);
       router.refresh();
     } catch (error) {
-      setDeleteError(
-        error instanceof Error ? error.message : "タスクの削除に失敗しました",
-      );
+      setDeleteError(readApiClientError(error, "タスクの削除に失敗しました"));
     } finally {
       setIsDeleting(false);
     }
