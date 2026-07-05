@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { taskFromDto, tasksFromDto, type TaskDto } from "./task";
+import {
+  INVALID_TASK_DTO_MESSAGE,
+  parseTaskDto,
+  parseTaskDtos,
+  taskFromDto,
+  tasksFromDto,
+  type TaskDto,
+} from "./task";
 
 const sampleDto: TaskDto = {
   id: 1,
@@ -49,5 +56,29 @@ describe("tasksFromDto", () => {
 
   it("returns an empty array for an empty input", () => {
     expect(tasksFromDto([])).toEqual([]);
+  });
+});
+
+describe("parseTaskDto", () => {
+  it("returns a validated TaskDto", () => {
+    expect(parseTaskDto(sampleDto)).toEqual(sampleDto);
+  });
+
+  it("throws when the API response shape is invalid", () => {
+    expect(() => parseTaskDto({ id: "1", title: "買い物" })).toThrow(
+      INVALID_TASK_DTO_MESSAGE,
+    );
+  });
+});
+
+describe("parseTaskDtos", () => {
+  it("returns a validated TaskDto array", () => {
+    expect(parseTaskDtos([sampleDto])).toEqual([sampleDto]);
+  });
+
+  it("throws when any item in the array is invalid", () => {
+    expect(() => parseTaskDtos([sampleDto, { id: 2 }])).toThrow(
+      INVALID_TASK_DTO_MESSAGE,
+    );
   });
 });

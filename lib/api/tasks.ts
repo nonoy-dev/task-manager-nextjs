@@ -1,4 +1,10 @@
-import type { TaskDto, TaskPriority, TaskStatus } from "@/lib/types/task";
+import {
+  parseTaskDto,
+  parseTaskDtos,
+  type TaskDto,
+  type TaskPriority,
+  type TaskStatus,
+} from "@/lib/types/task";
 
 export type TaskMutationInput = {
   title: string;
@@ -90,7 +96,7 @@ async function submitTaskMutation(
     throw new Error(await mutationErrorMessage(res, fallback));
   }
 
-  return res.json();
+  return parseTaskDto(await res.json());
 }
 
 export async function fetchTasks(): Promise<TaskDto[]> {
@@ -100,7 +106,7 @@ export async function fetchTasks(): Promise<TaskDto[]> {
     throw fetchTasksError(res.status);
   }
 
-  return res.json();
+  return parseTaskDtos(await res.json());
 }
 
 export async function fetchTask(id: number): Promise<TaskDto> {
@@ -114,7 +120,7 @@ export async function fetchTask(id: number): Promise<TaskDto> {
     throw fetchTasksError(res.status);
   }
 
-  return res.json();
+  return parseTaskDto(await res.json());
 }
 
 export async function createTask(input: CreateTaskInput): Promise<TaskDto> {
