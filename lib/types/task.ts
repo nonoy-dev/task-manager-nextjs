@@ -1,17 +1,44 @@
-export type TaskStatus = "todo" | "in_progress" | "done";
-export type TaskPriority = "low" | "medium" | "high";
+import { z } from "zod";
 
-export type TaskDto = {
-  id: number;
-  title: string;
-  description: string | null;
-  status: TaskStatus;
-  priority: TaskPriority;
-  due_date: string | null;
-  tags: string | null;
-  created_at: string;
-  updated_at: string;
-};
+export const taskStatusSchema = z.enum(["todo", "in_progress", "done"]);
+export const taskPrioritySchema = z.enum(["low", "medium", "high"]);
+
+export type TaskStatus = z.infer<typeof taskStatusSchema>;
+export type TaskPriority = z.infer<typeof taskPrioritySchema>;
+
+export const taskDtoSchema = z.object({
+  id: z.number(),
+  title: z.string(),
+  description: z.string().nullable(),
+  status: taskStatusSchema,
+  priority: taskPrioritySchema,
+  due_date: z.string().nullable(),
+  tags: z.string().nullable(),
+  created_at: z.string(),
+  updated_at: z.string(),
+});
+
+export type TaskDto = z.infer<typeof taskDtoSchema>;
+
+const taskDtoListSchema = z.array(taskDtoSchema);
+
+export const INVALID_TASK_DTO_MESSAGE = "Invalid task API response";
+
+export function parseTaskDto(data: unknown): TaskDto {
+  const result = taskDtoSchema.safeParse(data);
+  if (!result.success) {
+    throw new Error(INVALID_TASK_DTO_MESSAGE);
+  }
+  return result.data;
+}
+
+export function parseTaskDtos(data: unknown): TaskDto[] {
+  const result = taskDtoListSchema.safeParse(data);
+  if (!result.success) {
+    throw new Error(INVALID_TASK_DTO_MESSAGE);
+  }
+  return result.data;
+}
 
 export type Task = {
   id: number;
