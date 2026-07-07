@@ -15,9 +15,6 @@ export type TaskMutationInput = {
   tags: string;
 };
 
-export type CreateTaskInput = TaskMutationInput;
-export type UpdateTaskInput = TaskMutationInput;
-
 export const TASK_NOT_FOUND_MESSAGE = "Task not found";
 
 export const NETWORK_ERROR_MESSAGE =
@@ -123,7 +120,7 @@ export async function fetchTask(id: number): Promise<TaskDto> {
   return parseTaskDto(await res.json());
 }
 
-export async function createTask(input: CreateTaskInput): Promise<TaskDto> {
+export async function createTask(input: TaskMutationInput): Promise<TaskDto> {
   return submitTaskMutation(
     clientTasksUrl(),
     "POST",
@@ -134,7 +131,7 @@ export async function createTask(input: CreateTaskInput): Promise<TaskDto> {
 
 export async function updateTask(
   id: number,
-  input: UpdateTaskInput,
+  input: TaskMutationInput,
 ): Promise<TaskDto> {
   return submitTaskMutation(
     clientTasksUrl(`/${id}`),
