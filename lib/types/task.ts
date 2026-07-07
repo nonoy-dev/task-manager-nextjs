@@ -1,12 +1,12 @@
 import { z } from "zod";
 
-export const taskStatusSchema = z.enum(["todo", "in_progress", "done"]);
-export const taskPrioritySchema = z.enum(["low", "medium", "high"]);
+const taskStatusSchema = z.enum(["todo", "in_progress", "done"]);
+const taskPrioritySchema = z.enum(["low", "medium", "high"]);
 
 export type TaskStatus = z.infer<typeof taskStatusSchema>;
 export type TaskPriority = z.infer<typeof taskPrioritySchema>;
 
-export const taskDtoSchema = z.object({
+const taskDtoSchema = z.object({
   id: z.number(),
   title: z.string(),
   description: z.string().nullable(),
