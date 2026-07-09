@@ -5,4 +5,4 @@ export { FormTextField } from "./FormTextField";
 export {
   TASK_PRIORITY_OPTIONS,
   TASK_STATUS_OPTIONS,
-} from "./taskFormOptions";
+} from "@/lib/tasks/taskLabels";
