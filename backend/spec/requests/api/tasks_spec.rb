@@ -4,6 +4,14 @@ require "rails_helper"
 
 # Request specs: https://rspec.info/features/7-1/rspec-rails/request-specs/request-spec/
 RSpec.describe "Api::Tasks", type: :request do
+  let!(:user) do
+    User.create!(
+      email: "tasks-spec@example.com",
+      password: "password",
+      password_confirmation: "password",
+    )
+  end
+
   describe "GET /api/tasks" do
     it "returns http success" do
       get api_tasks_path
@@ -12,7 +20,7 @@ RSpec.describe "Api::Tasks", type: :request do
     end
 
     it "returns tasks as JSON" do
-      Task.create!(title: "Alpha", status: :todo, priority: :low)
+      user.tasks.create!(title: "Alpha", status: :todo, priority: :low)
 
       get api_tasks_path
 
@@ -26,8 +34,8 @@ RSpec.describe "Api::Tasks", type: :request do
     end
 
     it "filters by partial title match case-insensitively" do
-      Task.create!(title: "Meeting prep", status: :todo, priority: :low)
-      Task.create!(title: "Other", status: :todo, priority: :low)
+      user.tasks.create!(title: "Meeting prep", status: :todo, priority: :low)
+      user.tasks.create!(title: "Other", status: :todo, priority: :low)
 
       get api_tasks_path, params: { q: "meet" }
 
@@ -38,8 +46,8 @@ RSpec.describe "Api::Tasks", type: :request do
     end
 
     it "filters by partial description match" do
-      Task.create!(title: "Doc A", description: "Ruby on Rails", status: :todo, priority: :low)
-      Task.create!(title: "Doc B", description: "Python only", status: :todo, priority: :low)
+      user.tasks.create!(title: "Doc A", description: "Ruby on Rails", status: :todo, priority: :low)
+      user.tasks.create!(title: "Doc B", description: "Python only", status: :todo, priority: :low)
 
       get api_tasks_path, params: { q: "rails" }
 
@@ -50,8 +58,8 @@ RSpec.describe "Api::Tasks", type: :request do
     end
 
     it "returns all tasks when q is blank" do
-      Task.create!(title: "One", status: :todo, priority: :low)
-      Task.create!(title: "Two", status: :todo, priority: :low)
+      user.tasks.create!(title: "One", status: :todo, priority: :low)
+      user.tasks.create!(title: "Two", status: :todo, priority: :low)
 
       get api_tasks_path, params: { q: "   " }
 
@@ -60,8 +68,8 @@ RSpec.describe "Api::Tasks", type: :request do
     end
 
     it "filters by status when status param is present" do
-      Task.create!(title: "Todo A", status: :todo, priority: :low)
-      Task.create!(title: "Done B", status: :done, priority: :low)
+      user.tasks.create!(title: "Todo A", status: :todo, priority: :low)
+      user.tasks.create!(title: "Done B", status: :done, priority: :low)
 
       get api_tasks_path, params: { status: "todo" }
 
@@ -73,8 +81,8 @@ RSpec.describe "Api::Tasks", type: :request do
     end
 
     it "filters by priority when priority param is present" do
-      Task.create!(title: "Low P", status: :todo, priority: :low)
-      Task.create!(title: "High P", status: :todo, priority: :high)
+      user.tasks.create!(title: "Low P", status: :todo, priority: :low)
+      user.tasks.create!(title: "High P", status: :todo, priority: :high)
 
       get api_tasks_path, params: { priority: "high" }
 
@@ -86,8 +94,8 @@ RSpec.describe "Api::Tasks", type: :request do
     end
 
     it "ignores invalid status param" do
-      Task.create!(title: "Todo A", status: :todo, priority: :low)
-      Task.create!(title: "Done B", status: :done, priority: :low)
+      user.tasks.create!(title: "Todo A", status: :todo, priority: :low)
+      user.tasks.create!(title: "Done B", status: :done, priority: :low)
 
       get api_tasks_path
       expect(response.parsed_body.size).to eq(2)
@@ -99,8 +107,8 @@ RSpec.describe "Api::Tasks", type: :request do
     end
 
     it "combines q with status filter" do
-      Task.create!(title: "Alpha meeting", status: :todo, priority: :low)
-      Task.create!(title: "Beta meeting", status: :done, priority: :low)
+      user.tasks.create!(title: "Alpha meeting", status: :todo, priority: :low)
+      user.tasks.create!(title: "Beta meeting", status: :done, priority: :low)
 
       get api_tasks_path, params: { q: "meeting", status: "todo" }
 
@@ -111,8 +119,8 @@ RSpec.describe "Api::Tasks", type: :request do
     end
 
     it "sorts by created_at ascending when requested" do
-      older = Task.create!(title: "Older", status: :todo, priority: :low)
-      newer = Task.create!(title: "Newer", status: :todo, priority: :low)
+      older = user.tasks.create!(title: "Older", status: :todo, priority: :low)
+      newer = user.tasks.create!(title: "Newer", status: :todo, priority: :low)
       older.update_column(:created_at, 2.days.ago)
       newer.update_column(:created_at, 1.day.ago)
 
@@ -124,13 +132,13 @@ RSpec.describe "Api::Tasks", type: :request do
     end
 
     it "sorts by due_date ascending when requested" do
-      Task.create!(
+      user.tasks.create!(
         title: "Later due",
         status: :todo,
         priority: :low,
         due_date: Time.zone.parse("2026-12-01"),
       )
-      Task.create!(
+      user.tasks.create!(
         title: "Sooner due",
         status: :todo,
         priority: :low,
@@ -145,8 +153,8 @@ RSpec.describe "Api::Tasks", type: :request do
     end
 
     it "defaults invalid sort key to created_at ordering" do
-      first = Task.create!(title: "First", status: :todo, priority: :low)
-      second = Task.create!(title: "Second", status: :todo, priority: :low)
+      first = user.tasks.create!(title: "First", status: :todo, priority: :low)
+      second = user.tasks.create!(title: "Second", status: :todo, priority: :low)
       first.update_column(:created_at, 2.days.ago)
       second.update_column(:created_at, 1.day.ago)
 
@@ -160,7 +168,7 @@ RSpec.describe "Api::Tasks", type: :request do
 
   describe "GET /api/tasks/:id" do
     it "returns http success" do
-      task = Task.create!(title: "Show", status: :todo, priority: :medium)
+      task = user.tasks.create!(title: "Show", status: :todo, priority: :medium)
 
       get api_task_path(task)
 
@@ -168,7 +176,7 @@ RSpec.describe "Api::Tasks", type: :request do
     end
 
     it "returns the task as JSON" do
-      task = Task.create!(title: "Beta", status: :in_progress, priority: :high)
+      task = user.tasks.create!(title: "Beta", status: :in_progress, priority: :high)
 
       get api_task_path(task)
 
@@ -189,7 +197,7 @@ RSpec.describe "Api::Tasks", type: :request do
 
   describe "DELETE /api/tasks/:id" do
     it "destroys the task" do
-      task = Task.create!(title: "Delete me", status: :todo, priority: :low)
+      task = user.tasks.create!(title: "Delete me", status: :todo, priority: :low)
 
       expect {
         delete api_task_path(task)
@@ -207,7 +215,7 @@ RSpec.describe "Api::Tasks", type: :request do
   end
 
   describe "POST /api/tasks" do
-    it "creates a task and returns 201 with JSON" do
+    it "returns 422 when the task has no user" do
       expect {
         post api_tasks_path,
              params: {
@@ -219,15 +227,10 @@ RSpec.describe "Api::Tasks", type: :request do
                },
              },
              as: :json
-      }.to change(Task, :count).by(1)
+      }.not_to change(Task, :count)
 
-      expect(response).to have_http_status(:created)
-      json = response.parsed_body
-      expect_task_json_shape(json)
-      expect(json["title"]).to eq("New from API")
-      expect(json["description"]).to eq("Details")
-      expect(json["status"]).to eq("todo")
-      expect(json["priority"]).to eq("medium")
+      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response.parsed_body["errors"]).to include("User must exist")
     end
 
     it "returns 422 when title is blank" do
@@ -242,7 +245,7 @@ RSpec.describe "Api::Tasks", type: :request do
 
   describe "PATCH /api/tasks/:id" do
     it "updates the task status" do
-      task = Task.create!(title: "Patch target", status: :todo, priority: :medium)
+      task = user.tasks.create!(title: "Patch target", status: :todo, priority: :medium)
 
       patch api_task_path(task), params: { task: { status: "done" } }, as: :json
 
@@ -255,7 +258,7 @@ RSpec.describe "Api::Tasks", type: :request do
     end
 
     it "updates title and priority" do
-      task = Task.create!(title: "Before", status: :todo, priority: :low)
+      task = user.tasks.create!(title: "Before", status: :todo, priority: :low)
 
       patch api_task_path(task),
             params: { task: { title: "After", priority: "high" } },
@@ -270,7 +273,7 @@ RSpec.describe "Api::Tasks", type: :request do
     end
 
     it "returns 422 when update is invalid" do
-      task = Task.create!(title: "Keep", status: :todo, priority: :low)
+      task = user.tasks.create!(title: "Keep", status: :todo, priority: :low)
 
       patch api_task_path(task), params: { task: { title: "" } }, as: :json
 
