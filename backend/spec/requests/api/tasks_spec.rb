@@ -255,7 +255,7 @@ RSpec.describe "Api::Tasks", type: :request do
                as: :json
         }.not_to change(Task, :count)
 
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
         expect(response.parsed_body["errors"]).to include("User must exist")
       end
 
@@ -264,7 +264,7 @@ RSpec.describe "Api::Tasks", type: :request do
           post api_tasks_path, params: { task: { title: "" } }, as: :json
         }.not_to change(Task, :count)
 
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
         expect(response.parsed_body["errors"]).to include("Title can't be blank")
       end
     end
@@ -303,7 +303,7 @@ RSpec.describe "Api::Tasks", type: :request do
 
         patch api_task_path(task), params: { task: { title: "" } }, as: :json
 
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
         expect(response.parsed_body["errors"]).to include("Title can't be blank")
         expect(task.reload.title).to eq("Keep")
       end
