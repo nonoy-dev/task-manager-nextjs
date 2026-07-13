@@ -8,10 +8,12 @@ import {
   FormSelect,
   FormTextArea,
   FormTextField,
+} from "@/components/shared/form";
+import { readApiClientError, updateTask } from "@/lib/api/tasks";
+import {
   TASK_PRIORITY_OPTIONS,
   TASK_STATUS_OPTIONS,
-} from "@/components/tasks/form";
-import { readApiClientError, updateTask } from "@/lib/api/tasks";
+} from "@/lib/tasks/taskLabels";
 import {
   DESCRIPTION_MAX_LENGTH,
   TAGS_MAX_LENGTH,

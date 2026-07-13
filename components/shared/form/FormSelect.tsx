@@ -1,4 +1,4 @@
-import { inputClass, labelClass } from "./styles";
+import { inputClass, labelClass } from "./formFieldStyles";
 
 type FormSelectProps<T extends string> = {
   label: string;
