@@ -1,31 +1,28 @@
-import { fieldClass, labelClass } from "./styles";
+import { fieldClass, labelClass } from "./formFieldStyles";
 
-type FormTextFieldProps = {
+type FormDateFieldProps = {
   label: string;
   value: string;
   onChange: (value: string) => void;
   error?: string;
-  maxLength?: number;
-  placeholder?: string;
+  min?: string;
 };
 
-export function FormTextField({
+export function FormDateField({
   label,
   value,
   onChange,
   error,
-  maxLength,
-  placeholder,
-}: FormTextFieldProps) {
+  min,
+}: FormDateFieldProps) {
   return (
     <label>
       <span className={labelClass}>{label}</span>
       <input
-        type="text"
+        type="date"
         className={fieldClass(Boolean(error))}
         value={value}
-        maxLength={maxLength}
-        placeholder={placeholder}
+        min={min}
         onChange={(event) => onChange(event.target.value)}
       />
       {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
