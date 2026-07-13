@@ -35,8 +35,13 @@ seed_tasks = [
   }
 ]
 
+demo_user = User.find_or_create_by!(email: "demo@example.com") do |user|
+  user.password = "password"
+  user.password_confirmation = "password"
+end
+
 seed_tasks.each do |attrs|
-  Task.find_or_create_by!(title: attrs[:title]) do |task|
+  demo_user.tasks.find_or_create_by!(title: attrs[:title]) do |task|
     task.description = attrs[:description]
     task.status = attrs[:status]
     task.priority = attrs[:priority]
