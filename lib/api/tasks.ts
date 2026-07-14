@@ -1,3 +1,4 @@
+import { NETWORK_ERROR_MESSAGE } from "@/lib/api/errors";
 import {
   parseTaskDto,
   parseTaskDtos,
@@ -17,17 +18,12 @@ export type TaskMutationInput = {
 
 export const TASK_NOT_FOUND_MESSAGE = "Task not found";
 
-export const NETWORK_ERROR_MESSAGE =
-  "ネットワークエラーが発生しました。接続を確認してください。";
+export { NETWORK_ERROR_MESSAGE, readApiClientError } from "@/lib/api/errors";
 
 const TASKS_API_PATH = "/api/tasks";
 
 export function isTaskNotFoundError(error: unknown): boolean {
   return error instanceof Error && error.message === TASK_NOT_FOUND_MESSAGE;
-}
-
-export function readApiClientError(error: unknown, fallback: string): string {
-  return error instanceof Error ? error.message : fallback;
 }
 
 function serverTasksUrl(path = ""): string {
