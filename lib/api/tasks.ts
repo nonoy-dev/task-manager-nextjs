@@ -67,7 +67,10 @@ async function apiFetch(
   init?: RequestInit,
 ): Promise<Response> {
   try {
-    return await fetch(url, init);
+    return await fetch(url, {
+      ...init,
+      credentials: "include",
+    });
   } catch {
     throw new Error(NETWORK_ERROR_MESSAGE);
   }
