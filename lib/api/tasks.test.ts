@@ -49,6 +49,32 @@ describe("task API fetch errors", () => {
 
     await expect(createTask(sampleInput)).rejects.toThrow(NETWORK_ERROR_MESSAGE);
   });
+
+  it("createTask sends credentials with the request", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      mockResponse(201, {
+        id: 1,
+        title: "買い物",
+        description: null,
+        status: "todo",
+        priority: "medium",
+        due_date: null,
+        tags: null,
+        created_at: "2026-07-14T00:00:00.000Z",
+        updated_at: "2026-07-14T00:00:00.000Z",
+      }),
+    );
+
+    await createTask(sampleInput);
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/tasks",
+      expect.objectContaining({
+        method: "POST",
+        credentials: "include",
+      }),
+    );
+  });
 });
 
 describe("taskMutationBody", () => {
