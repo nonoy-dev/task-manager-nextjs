@@ -1,4 +1,5 @@
-import { NETWORK_ERROR_MESSAGE } from "@/lib/api/errors";
+import { NETWORK_ERROR_MESSAGE, UNAUTHORIZED_MESSAGE } from "@/lib/api/errors";
+import { SESSION_COOKIE_NAME } from "@/lib/auth/sessionCookie";
 import {
   parseTaskDto,
   parseTaskDtos,
@@ -18,7 +19,12 @@ export type TaskMutationInput = {
 
 export const TASK_NOT_FOUND_MESSAGE = "Task not found";
 
-export { NETWORK_ERROR_MESSAGE, readApiClientError } from "@/lib/api/errors";
+export {
+  NETWORK_ERROR_MESSAGE,
+  UNAUTHORIZED_MESSAGE,
+  isUnauthorizedError,
+  readApiClientError,
+} from "@/lib/api/errors";
 
 const TASKS_API_PATH = "/api/tasks";
 
@@ -52,6 +58,10 @@ async function mutationErrorMessage(
   res: Response,
   fallback: string,
 ): Promise<string> {
+  if (res.status === 401) {
+    return UNAUTHORIZED_MESSAGE;
+  }
+
   const body = (await res.json().catch(() => null)) as {
     errors?: string[];
   } | null;
@@ -59,7 +69,20 @@ async function mutationErrorMessage(
 }
 
 function fetchTasksError(status: number): Error {
+  if (status === 401) {
+    return new Error(UNAUTHORIZED_MESSAGE);
+  }
   return new Error(`タスクの取得に失敗しました (${status})`);
+}
+
+async function sessionCookieHeader(): Promise<HeadersInit | undefined> {
+  const { cookies } = await import("next/headers");
+  const cookieStore = await cookies();
+  const session = cookieStore.get(SESSION_COOKIE_NAME);
+  if (!session) {
+    return undefined;
+  }
+  return { Cookie: `${SESSION_COOKIE_NAME}=${session.value}` };
 }
 
 async function apiFetch(
@@ -96,7 +119,10 @@ async function submitTaskMutation(
 }
 
 export async function fetchTasks(): Promise<TaskDto[]> {
-  const res = await apiFetch(serverTasksUrl(), { cache: "no-store" });
+  const res = await apiFetch(serverTasksUrl(), {
+    cache: "no-store",
+    headers: await sessionCookieHeader(),
+  });
 
   if (!res.ok) {
     throw fetchTasksError(res.status);
@@ -106,7 +132,10 @@ export async function fetchTasks(): Promise<TaskDto[]> {
 }
 
 export async function fetchTask(id: number): Promise<TaskDto> {
-  const res = await apiFetch(serverTasksUrl(`/${id}`), { cache: "no-store" });
+  const res = await apiFetch(serverTasksUrl(`/${id}`), {
+    cache: "no-store",
+    headers: await sessionCookieHeader(),
+  });
 
   if (res.status === 404) {
     throw new Error(TASK_NOT_FOUND_MESSAGE);

@@ -4,8 +4,15 @@ import {
   fetchTask,
   NETWORK_ERROR_MESSAGE,
   TASK_NOT_FOUND_MESSAGE,
+  UNAUTHORIZED_MESSAGE,
   taskMutationBody,
 } from "./tasks";
+
+vi.mock("next/headers", () => ({
+  cookies: async () => ({
+    get: () => undefined,
+  }),
+}));
 
 const sampleInput = {
   title: "買い物",
@@ -34,12 +41,10 @@ describe("task API fetch errors", () => {
     await expect(fetchTask(99)).rejects.toThrow(TASK_NOT_FOUND_MESSAGE);
   });
 
-  it("createTask throws API validation errors on 422", async () => {
-    vi.spyOn(globalThis, "fetch").mockResolvedValue(
-      mockResponse(422, { errors: ["Title can't be blank"] }),
-    );
+  it("createTask throws UNAUTHORIZED_MESSAGE on 401", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(mockResponse(401));
 
-    await expect(createTask(sampleInput)).rejects.toThrow("Title can't be blank");
+    await expect(createTask(sampleInput)).rejects.toThrow(UNAUTHORIZED_MESSAGE);
   });
 
   it("createTask throws NETWORK_ERROR_MESSAGE when fetch rejects", async () => {
