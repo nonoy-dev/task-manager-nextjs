@@ -1,7 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { RefreshableErrorBanner } from "@/components/shared/ErrorBanner";
 import { TaskEditForm } from "@/components/tasks/TaskEditForm";
-import { fetchTask, isTaskNotFoundError } from "@/lib/api/tasks";
+import {
+  fetchTask,
+  isTaskNotFoundError,
+  isUnauthorizedError,
+  readApiClientError,
+} from "@/lib/api/tasks";
 import { taskFromDto } from "@/lib/types/task";
 
 type TaskEditPageProps = {
@@ -23,7 +29,28 @@ export default async function TaskEditPage({ params }: TaskEditPageProps) {
     if (isTaskNotFoundError(error)) {
       notFound();
     }
-    throw error;
+
+    const unauthorized = isUnauthorizedError(error);
+    const message = readApiClientError(error, "タスクの取得に失敗しました");
+
+    return (
+      <main className="p-8">
+        <Link
+          href="/"
+          className="text-sm text-foreground/70 hover:text-foreground hover:underline"
+        >
+          ← 一覧に戻る
+        </Link>
+        <h1 className="mt-4 text-2xl font-semibold">タスク編集</h1>
+        <div className="mt-4">
+          <RefreshableErrorBanner
+            title="タスクの取得に失敗しました"
+            message={message}
+            unauthorized={unauthorized}
+          />
+        </div>
+      </main>
+    );
   }
 
   const task = taskFromDto(taskDto);

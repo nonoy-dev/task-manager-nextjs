@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 type ErrorBannerProps = {
@@ -7,6 +8,7 @@ type ErrorBannerProps = {
   message: string;
   onRetry?: () => void;
   retryLabel?: string;
+  loginHref?: string;
 };
 
 export function ErrorBanner({
@@ -14,6 +16,7 @@ export function ErrorBanner({
   message,
   onRetry,
   retryLabel = "再試行",
+  loginHref,
 }: ErrorBannerProps) {
   return (
     <div
@@ -24,15 +27,25 @@ export function ErrorBanner({
         <p className="text-sm font-medium text-red-600">{title}</p>
       )}
       <p className="mt-1 text-sm text-red-600">{message}</p>
-      {onRetry != null && (
+      {(onRetry != null || loginHref != null) && (
         <div className="mt-3 flex flex-wrap gap-3">
-          <button
-            type="button"
-            onClick={onRetry}
-            className="rounded-md border border-red-600/30 px-3 py-1.5 text-sm text-red-600 hover:bg-red-600/10"
-          >
-            {retryLabel}
-          </button>
+          {onRetry != null && (
+            <button
+              type="button"
+              onClick={onRetry}
+              className="rounded-md border border-red-600/30 px-3 py-1.5 text-sm text-red-600 hover:bg-red-600/10"
+            >
+              {retryLabel}
+            </button>
+          )}
+          {loginHref != null && (
+            <Link
+              href={loginHref}
+              className="rounded-md border border-red-600/30 px-3 py-1.5 text-sm text-red-600 hover:bg-red-600/10"
+            >
+              ログインへ
+            </Link>
+          )}
         </div>
       )}
     </div>
@@ -42,19 +55,22 @@ export function ErrorBanner({
 type RefreshableErrorBannerProps = {
   title?: string;
   message: string;
+  unauthorized?: boolean;
 };
 
 export function RefreshableErrorBanner({
   title,
   message,
+  unauthorized = false,
 }: RefreshableErrorBannerProps) {
   const router = useRouter();
 
   return (
     <ErrorBanner
-      title={title}
+      title={unauthorized ? "ログインが必要です" : title}
       message={message}
-      onRetry={() => router.refresh()}
+      onRetry={unauthorized ? undefined : () => router.refresh()}
+      loginHref={unauthorized ? "/login" : undefined}
     />
   );
 }
