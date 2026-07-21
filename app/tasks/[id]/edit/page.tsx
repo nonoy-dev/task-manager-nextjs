@@ -3,11 +3,11 @@ import { notFound } from "next/navigation";
 import { RefreshableErrorBanner } from "@/components/shared/ErrorBanner";
 import { TaskEditForm } from "@/components/tasks/TaskEditForm";
 import {
-  fetchTask,
-  isTaskNotFoundError,
   isUnauthorizedError,
   readApiClientError,
-} from "@/lib/api/tasks";
+} from "@/lib/api/errors";
+import { isTaskNotFoundError } from "@/lib/api/tasks.client";
+import { fetchTask } from "@/lib/api/tasks.server";
 import { taskFromDto } from "@/lib/types/task";
 
 type TaskEditPageProps = {

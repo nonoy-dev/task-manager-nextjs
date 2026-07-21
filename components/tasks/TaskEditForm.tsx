@@ -9,7 +9,8 @@ import {
   FormTextArea,
   FormTextField,
 } from "@/components/shared/form";
-import { readApiClientError, updateTask } from "@/lib/api/tasks";
+import { readApiClientError } from "@/lib/api/errors";
+import { updateTask } from "@/lib/api/tasks.client";
 import {
   TASK_PRIORITY_OPTIONS,
   TASK_STATUS_OPTIONS,

@@ -2,10 +2,10 @@ import { RefreshableErrorBanner } from "@/components/shared/ErrorBanner";
 import { TaskCreateForm } from "@/components/tasks/TaskCreateForm";
 import { TaskList } from "@/components/tasks/TaskList";
 import {
-  fetchTasks,
   isUnauthorizedError,
   readApiClientError,
-} from "@/lib/api/tasks";
+} from "@/lib/api/errors";
+import { fetchTasks } from "@/lib/api/tasks.server";
 import { type Task, tasksFromDto } from "@/lib/types/task";
 
 export default async function Home() {

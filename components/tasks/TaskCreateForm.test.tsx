@@ -12,7 +12,7 @@ vi.mock("next/navigation", () => ({
   }),
 }));
 
-vi.mock("@/lib/api/tasks", () => ({
+vi.mock("@/lib/api/tasks.client", () => ({
   createTask: vi.fn(),
 }));
 
