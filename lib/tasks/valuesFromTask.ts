@@ -1,4 +1,4 @@
-import type { TaskMutationInput } from "@/lib/api/tasks";
+import type { TaskMutationInput } from "@/lib/api/tasks.client";
 import type { Task } from "@/lib/types/task";
 
 export function valuesFromTask(task: Task): TaskMutationInput {

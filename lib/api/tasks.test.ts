@@ -1,18 +1,23 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import {
-  createTask,
-  fetchTask,
-  NETWORK_ERROR_MESSAGE,
-  TASK_NOT_FOUND_MESSAGE,
-  UNAUTHORIZED_MESSAGE,
-  taskMutationBody,
-} from "./tasks";
+
+vi.mock("server-only", () => ({}));
 
 vi.mock("next/headers", () => ({
   cookies: async () => ({
     get: () => undefined,
   }),
 }));
+
+import {
+  NETWORK_ERROR_MESSAGE,
+  UNAUTHORIZED_MESSAGE,
+} from "./errors";
+import {
+  createTask,
+  TASK_NOT_FOUND_MESSAGE,
+  taskMutationBody,
+} from "./tasks.client";
+import { fetchTask } from "./tasks.server";
 
 const sampleInput = {
   title: "買い物",
@@ -76,6 +81,31 @@ describe("task API fetch errors", () => {
       "/api/tasks",
       expect.objectContaining({
         method: "POST",
+        credentials: "include",
+      }),
+    );
+  });
+
+  it("fetchTask does not send credentials", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      mockResponse(200, {
+        id: 99,
+        title: "買い物",
+        description: null,
+        status: "todo",
+        priority: "medium",
+        due_date: null,
+        tags: null,
+        created_at: "2026-07-14T00:00:00.000Z",
+        updated_at: "2026-07-14T00:00:00.000Z",
+      }),
+    );
+
+    await fetchTask(99);
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining("/api/tasks/99"),
+      expect.not.objectContaining({
         credentials: "include",
       }),
     );
