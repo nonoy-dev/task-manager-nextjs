@@ -23,7 +23,7 @@ export function isTaskNotFoundError(error: unknown): boolean {
   return error instanceof Error && error.message === TASK_NOT_FOUND_MESSAGE;
 }
 
-function clientTasksUrl(path = ""): string {
+function tasksUrl(path = ""): string {
   return `${TASKS_API_PATH}${path}`;
 }
 
@@ -55,20 +55,20 @@ async function mutationErrorMessage(
 }
 
 async function withNetworkError(
-  run: () => Promise<Response>,
+  promise: Promise<Response>,
 ): Promise<Response> {
   try {
-    return await run();
+    return await promise;
   } catch {
     throw new Error(NETWORK_ERROR_MESSAGE);
   }
 }
 
-async function clientApiFetch(
+async function apiFetch(
   url: string,
   init?: RequestInit,
 ): Promise<Response> {
-  return withNetworkError(() =>
+  return withNetworkError(
     fetch(url, {
       ...init,
       credentials: "include",
@@ -82,7 +82,7 @@ async function submitTaskMutation(
   input: TaskMutationInput,
   fallback: string,
 ): Promise<TaskDto> {
-  const res = await clientApiFetch(url, {
+  const res = await apiFetch(url, {
     method,
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(taskMutationBody(input)),
@@ -97,7 +97,7 @@ async function submitTaskMutation(
 
 export async function createTask(input: TaskMutationInput): Promise<TaskDto> {
   return submitTaskMutation(
-    clientTasksUrl(),
+    tasksUrl(),
     "POST",
     input,
     "タスクの作成に失敗しました",
@@ -109,7 +109,7 @@ export async function updateTask(
   input: TaskMutationInput,
 ): Promise<TaskDto> {
   return submitTaskMutation(
-    clientTasksUrl(`/${id}`),
+    tasksUrl(`/${id}`),
     "PATCH",
     input,
     "タスクの更新に失敗しました",
@@ -117,7 +117,7 @@ export async function updateTask(
 }
 
 export async function deleteTask(id: number): Promise<void> {
-  const res = await clientApiFetch(clientTasksUrl(`/${id}`), {
+  const res = await apiFetch(tasksUrl(`/${id}`), {
     method: "DELETE",
   });
 

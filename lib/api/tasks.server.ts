@@ -1,5 +1,6 @@
 import "server-only";
 
+import { cookies } from "next/headers";
 import { NETWORK_ERROR_MESSAGE, UNAUTHORIZED_MESSAGE } from "@/lib/api/errors";
 import { TASK_NOT_FOUND_MESSAGE } from "@/lib/api/tasks.client";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/sessionCookie";
@@ -11,7 +12,7 @@ import {
 
 const TASKS_API_PATH = "/api/tasks";
 
-function serverTasksUrl(path = ""): string {
+function tasksUrl(path = ""): string {
   const base = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001";
   return `${base}${TASKS_API_PATH}${path}`;
 }
@@ -24,7 +25,6 @@ function fetchTasksError(status: number): Error {
 }
 
 async function sessionCookieHeader(): Promise<HeadersInit | undefined> {
-  const { cookies } = await import("next/headers");
   const cookieStore = await cookies();
   const session = cookieStore.get(SESSION_COOKIE_NAME);
   if (!session) {
@@ -34,24 +34,24 @@ async function sessionCookieHeader(): Promise<HeadersInit | undefined> {
 }
 
 async function withNetworkError(
-  run: () => Promise<Response>,
+  promise: Promise<Response>,
 ): Promise<Response> {
   try {
-    return await run();
+    return await promise;
   } catch {
     throw new Error(NETWORK_ERROR_MESSAGE);
   }
 }
 
-async function serverApiFetch(
+async function apiFetch(
   url: string,
   init?: RequestInit,
 ): Promise<Response> {
-  return withNetworkError(() => fetch(url, init));
+  return withNetworkError(fetch(url, init));
 }
 
 export async function fetchTasks(): Promise<TaskDto[]> {
-  const res = await serverApiFetch(serverTasksUrl(), {
+  const res = await apiFetch(tasksUrl(), {
     cache: "no-store",
     headers: await sessionCookieHeader(),
   });
@@ -64,7 +64,7 @@ export async function fetchTasks(): Promise<TaskDto[]> {
 }
 
 export async function fetchTask(id: number): Promise<TaskDto> {
-  const res = await serverApiFetch(serverTasksUrl(`/${id}`), {
+  const res = await apiFetch(tasksUrl(`/${id}`), {
     cache: "no-store",
     headers: await sessionCookieHeader(),
   });
