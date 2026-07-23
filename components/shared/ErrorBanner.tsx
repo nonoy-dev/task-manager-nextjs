@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { logout } from "@/lib/api/sessions.client";
 
 type ErrorBannerProps = {
   title?: string;
@@ -64,13 +66,45 @@ export function RefreshableErrorBanner({
   unauthorized = false,
 }: RefreshableErrorBannerProps) {
   const router = useRouter();
+  const [isLeavingToLogin, setIsLeavingToLogin] = useState(false);
+
+  async function handleGoToLogin() {
+    setIsLeavingToLogin(true);
+    try {
+      await logout();
+    } catch {
+    }
+    router.push("/login");
+    router.refresh();
+  }
+
+  if (unauthorized) {
+    return (
+      <div
+        className="rounded-lg border border-red-600/30 bg-red-600/10 p-4"
+        role="alert"
+      >
+        <p className="text-sm font-medium text-red-600">ログインが必要です</p>
+        <p className="mt-1 text-sm text-red-600">{message}</p>
+        <div className="mt-3 flex flex-wrap gap-3">
+          <button
+            type="button"
+            onClick={handleGoToLogin}
+            disabled={isLeavingToLogin}
+            className="rounded-md border border-red-600/30 px-3 py-1.5 text-sm text-red-600 hover:bg-red-600/10 disabled:opacity-50"
+          >
+            {isLeavingToLogin ? "移動中..." : "ログインへ"}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <ErrorBanner
-      title={unauthorized ? "ログインが必要です" : title}
+      title={title}
       message={message}
-      onRetry={unauthorized ? undefined : () => router.refresh()}
-      loginHref={unauthorized ? "/login" : undefined}
+      onRetry={() => router.refresh()}
     />
   );
 }
