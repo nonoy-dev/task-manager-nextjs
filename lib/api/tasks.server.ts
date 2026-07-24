@@ -30,7 +30,9 @@ async function sessionCookieHeader(): Promise<HeadersInit | undefined> {
   if (!session) {
     return undefined;
   }
-  return { Cookie: `${SESSION_COOKIE_NAME}=${session.value}` };
+  return {
+    Cookie: `${SESSION_COOKIE_NAME}=${encodeURIComponent(session.value)}`,
+  };
 }
 
 async function withNetworkError(
