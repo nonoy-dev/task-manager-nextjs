@@ -11,9 +11,9 @@ RSpec.describe "Api::Sessions", type: :request do
     )
   end
 
-  describe "POST /api/sessions" do
+  describe "POST /api/session" do
     it "creates a session when credentials are valid" do
-      post api_sessions_path,
+      post api_session_path,
            params: { email: user.email, password: "password" },
            as: :json
 
@@ -26,7 +26,7 @@ RSpec.describe "Api::Sessions", type: :request do
     end
 
     it "returns unauthorized when credentials are invalid" do
-      post api_sessions_path,
+      post api_session_path,
            params: { email: user.email, password: "wrong" },
            as: :json
 
@@ -36,13 +36,36 @@ RSpec.describe "Api::Sessions", type: :request do
     end
   end
 
-  describe "DELETE /api/sessions" do
-    it "clears the session" do
-      post api_sessions_path,
+  describe "GET /api/session" do
+    it "returns the current user when a session exists" do
+      post api_session_path,
            params: { email: user.email, password: "password" },
            as: :json
 
-      delete api_sessions_path, as: :json
+      get api_session_path, as: :json
+
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body).to eq(
+        "id" => user.id,
+        "email" => user.email,
+      )
+    end
+
+    it "returns unauthorized when no session exists" do
+      get api_session_path, as: :json
+
+      expect(response).to have_http_status(:unauthorized)
+      expect(response.parsed_body["error"]).to eq("Unauthorized")
+    end
+  end
+
+  describe "DELETE /api/session" do
+    it "clears the session" do
+      post api_session_path,
+           params: { email: user.email, password: "password" },
+           as: :json
+
+      delete api_session_path, as: :json
 
       expect(response).to have_http_status(:no_content)
       expect(session[:user_id]).to be_nil
