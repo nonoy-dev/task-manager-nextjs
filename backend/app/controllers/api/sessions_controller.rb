@@ -12,6 +12,14 @@ module Api
       end
     end
 
+    def show
+      if current_user
+        render json: { id: current_user.id, email: current_user.email }
+      else
+        render json: { error: "Unauthorized" }, status: :unauthorized
+      end
+    end
+
     def destroy
       reset_session
       head :no_content

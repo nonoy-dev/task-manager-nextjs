@@ -12,7 +12,7 @@ RSpec.describe "Api::Tasks", type: :request do
   end
 
   def login_as(user)
-    post api_sessions_path,
+    post api_session_path,
          params: { email: user.email, password: "password" },
          as: :json
   end

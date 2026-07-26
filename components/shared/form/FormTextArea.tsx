@@ -1,4 +1,4 @@
-import { fieldClass, labelClass } from "./styles";
+import { fieldClass, labelClass } from "./formFieldStyles";
 
 type FormTextAreaProps = {
   label: string;

@@ -1,11 +1,23 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+
+vi.mock("server-only", () => ({}));
+
+vi.mock("next/headers", () => ({
+  cookies: async () => ({
+    get: () => undefined,
+  }),
+}));
+
+import {
+  NETWORK_ERROR_MESSAGE,
+  UNAUTHORIZED_MESSAGE,
+} from "./errors";
 import {
   createTask,
-  fetchTask,
-  NETWORK_ERROR_MESSAGE,
   TASK_NOT_FOUND_MESSAGE,
   taskMutationBody,
-} from "./tasks";
+} from "./tasks.client";
+import { fetchTask } from "./tasks.server";
 
 const sampleInput = {
   title: "買い物",
@@ -34,12 +46,10 @@ describe("task API fetch errors", () => {
     await expect(fetchTask(99)).rejects.toThrow(TASK_NOT_FOUND_MESSAGE);
   });
 
-  it("createTask throws API validation errors on 422", async () => {
-    vi.spyOn(globalThis, "fetch").mockResolvedValue(
-      mockResponse(422, { errors: ["Title can't be blank"] }),
-    );
+  it("createTask throws UNAUTHORIZED_MESSAGE on 401", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(mockResponse(401));
 
-    await expect(createTask(sampleInput)).rejects.toThrow("Title can't be blank");
+    await expect(createTask(sampleInput)).rejects.toThrow(UNAUTHORIZED_MESSAGE);
   });
 
   it("createTask throws NETWORK_ERROR_MESSAGE when fetch rejects", async () => {
@@ -48,6 +58,57 @@ describe("task API fetch errors", () => {
     );
 
     await expect(createTask(sampleInput)).rejects.toThrow(NETWORK_ERROR_MESSAGE);
+  });
+
+  it("createTask sends credentials with the request", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      mockResponse(201, {
+        id: 1,
+        title: "買い物",
+        description: null,
+        status: "todo",
+        priority: "medium",
+        due_date: null,
+        tags: null,
+        created_at: "2026-07-14T00:00:00.000Z",
+        updated_at: "2026-07-14T00:00:00.000Z",
+      }),
+    );
+
+    await createTask(sampleInput);
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/tasks",
+      expect.objectContaining({
+        method: "POST",
+        credentials: "include",
+      }),
+    );
+  });
+
+  it("fetchTask does not send credentials", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      mockResponse(200, {
+        id: 99,
+        title: "買い物",
+        description: null,
+        status: "todo",
+        priority: "medium",
+        due_date: null,
+        tags: null,
+        created_at: "2026-07-14T00:00:00.000Z",
+        updated_at: "2026-07-14T00:00:00.000Z",
+      }),
+    );
+
+    await fetchTask(99);
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining("/api/tasks/99"),
+      expect.not.objectContaining({
+        credentials: "include",
+      }),
+    );
   });
 });
 
