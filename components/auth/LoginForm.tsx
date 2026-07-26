@@ -44,6 +44,7 @@ export function LoginForm() {
 
   async function handleSubmit(event: React.SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
+    setSubmitError(null);
 
     const nextErrors = validateLoginValues(values);
     if (Object.keys(nextErrors).length > 0) {
@@ -52,7 +53,6 @@ export function LoginForm() {
     }
 
     setErrors({});
-    setSubmitError(null);
     setIsSubmitting(true);
 
     try {
