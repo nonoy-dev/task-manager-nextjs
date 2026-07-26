@@ -1,6 +1,6 @@
+import { NETWORK_ERROR_MESSAGE, UNAUTHORIZED_MESSAGE } from "@/lib/api/errors";
 import {
   parseTaskDto,
-  parseTaskDtos,
   type TaskDto,
   type TaskPriority,
   type TaskStatus,
@@ -17,25 +17,13 @@ export type TaskMutationInput = {
 
 export const TASK_NOT_FOUND_MESSAGE = "Task not found";
 
-export const NETWORK_ERROR_MESSAGE =
-  "ネットワークエラーが発生しました。接続を確認してください。";
-
 const TASKS_API_PATH = "/api/tasks";
 
 export function isTaskNotFoundError(error: unknown): boolean {
   return error instanceof Error && error.message === TASK_NOT_FOUND_MESSAGE;
 }
 
-export function readApiClientError(error: unknown, fallback: string): string {
-  return error instanceof Error ? error.message : fallback;
-}
-
-function serverTasksUrl(path = ""): string {
-  const base = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001";
-  return `${base}${TASKS_API_PATH}${path}`;
-}
-
-function clientTasksUrl(path = ""): string {
+function tasksUrl(path = ""): string {
   return `${TASKS_API_PATH}${path}`;
 }
 
@@ -56,25 +44,36 @@ async function mutationErrorMessage(
   res: Response,
   fallback: string,
 ): Promise<string> {
+  if (res.status === 401) {
+    return UNAUTHORIZED_MESSAGE;
+  }
+
   const body = (await res.json().catch(() => null)) as {
     errors?: string[];
   } | null;
   return body?.errors?.join(", ") ?? `${fallback} (${res.status})`;
 }
 
-function fetchTasksError(status: number): Error {
-  return new Error(`タスクの取得に失敗しました (${status})`);
+async function withNetworkError(
+  promise: Promise<Response>,
+): Promise<Response> {
+  try {
+    return await promise;
+  } catch {
+    throw new Error(NETWORK_ERROR_MESSAGE);
+  }
 }
 
 async function apiFetch(
   url: string,
   init?: RequestInit,
 ): Promise<Response> {
-  try {
-    return await fetch(url, init);
-  } catch {
-    throw new Error(NETWORK_ERROR_MESSAGE);
-  }
+  return withNetworkError(
+    fetch(url, {
+      ...init,
+      credentials: "include",
+    }),
+  );
 }
 
 async function submitTaskMutation(
@@ -96,33 +95,9 @@ async function submitTaskMutation(
   return parseTaskDto(await res.json());
 }
 
-export async function fetchTasks(): Promise<TaskDto[]> {
-  const res = await apiFetch(serverTasksUrl(), { cache: "no-store" });
-
-  if (!res.ok) {
-    throw fetchTasksError(res.status);
-  }
-
-  return parseTaskDtos(await res.json());
-}
-
-export async function fetchTask(id: number): Promise<TaskDto> {
-  const res = await apiFetch(serverTasksUrl(`/${id}`), { cache: "no-store" });
-
-  if (res.status === 404) {
-    throw new Error(TASK_NOT_FOUND_MESSAGE);
-  }
-
-  if (!res.ok) {
-    throw fetchTasksError(res.status);
-  }
-
-  return parseTaskDto(await res.json());
-}
-
 export async function createTask(input: TaskMutationInput): Promise<TaskDto> {
   return submitTaskMutation(
-    clientTasksUrl(),
+    tasksUrl(),
     "POST",
     input,
     "タスクの作成に失敗しました",
@@ -134,7 +109,7 @@ export async function updateTask(
   input: TaskMutationInput,
 ): Promise<TaskDto> {
   return submitTaskMutation(
-    clientTasksUrl(`/${id}`),
+    tasksUrl(`/${id}`),
     "PATCH",
     input,
     "タスクの更新に失敗しました",
@@ -142,7 +117,7 @@ export async function updateTask(
 }
 
 export async function deleteTask(id: number): Promise<void> {
-  const res = await apiFetch(clientTasksUrl(`/${id}`), {
+  const res = await apiFetch(tasksUrl(`/${id}`), {
     method: "DELETE",
   });
 

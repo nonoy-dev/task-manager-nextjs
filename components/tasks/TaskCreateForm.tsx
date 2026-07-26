@@ -7,10 +7,13 @@ import {
   FormSelect,
   FormTextArea,
   FormTextField,
+} from "@/components/shared/form";
+import { readApiClientError } from "@/lib/api/errors";
+import { createTask } from "@/lib/api/tasks.client";
+import {
   TASK_PRIORITY_OPTIONS,
   TASK_STATUS_OPTIONS,
-} from "@/components/tasks/form";
-import { createTask, readApiClientError } from "@/lib/api/tasks";
+} from "@/lib/tasks/taskLabels";
 import {
   DESCRIPTION_MAX_LENGTH,
   TAGS_MAX_LENGTH,

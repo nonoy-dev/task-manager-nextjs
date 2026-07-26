@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { deleteTask, readApiClientError, updateTask } from "@/lib/api/tasks";
+import { readApiClientError } from "@/lib/api/errors";
+import { deleteTask, updateTask } from "@/lib/api/tasks.client";
 import {
   taskPriorityLabel,
   taskStatusLabel,

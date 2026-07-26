@@ -1,4 +1,4 @@
-import type { TaskMutationInput } from "@/lib/api/tasks";
+import type { TaskMutationInput } from "@/lib/api/tasks.client";
 
 export type TaskFormValues = TaskMutationInput;
 
