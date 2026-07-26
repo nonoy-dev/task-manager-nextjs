@@ -9,8 +9,7 @@ Rails.application.routes.draw do
   # root "posts#index"
   namespace :api do
     get :health, to: "health#show"
-    post :sessions, to: "sessions#create"
-    delete :sessions, to: "sessions#destroy"
+    resource :session, only: %i[create show destroy]
     resources :tasks, only: %i[index show create update destroy]
   end
 end

@@ -1,6 +1,6 @@
 import { NETWORK_ERROR_MESSAGE } from "@/lib/api/errors";
 
-const SESSIONS_API_PATH = "/api/sessions";
+const SESSION_API_PATH = "/api/session";
 
 export type SessionUser = {
   id: number;
@@ -13,7 +13,7 @@ type SessionErrorBody = {
 
 async function sessionFetch(init: RequestInit): Promise<Response> {
   try {
-    return await fetch(SESSIONS_API_PATH, {
+    return await fetch(SESSION_API_PATH, {
       ...init,
       credentials: "include",
     });

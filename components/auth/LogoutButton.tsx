@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { readApiClientError } from "@/lib/api/errors";
-import { logout } from "@/lib/api/sessions";
+import { logout } from "@/lib/api/sessions.client";
 
 export function LogoutButton() {
   const router = useRouter();

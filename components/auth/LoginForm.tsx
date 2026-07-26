@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { FormTextField } from "@/components/shared/form";
 import { readApiClientError } from "@/lib/api/errors";
-import { login } from "@/lib/api/sessions";
+import { login } from "@/lib/api/sessions.client";
 
 type LoginFormValues = {
   email: string;
