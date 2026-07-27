@@ -59,6 +59,22 @@ RSpec.describe "Api::Tasks", type: :request do
         expect_task_json_shape(json.first)
       end
 
+      it "does not include other users tasks" do
+        other = User.create!(
+          email: "other-tasks@example.com",
+          password: "password",
+          password_confirmation: "password",
+        )
+        other.tasks.create!(title: "Other user task", status: :todo, priority: :low)
+        user.tasks.create!(title: "Mine", status: :todo, priority: :low)
+
+        get api_tasks_path
+
+        expect(response).to have_http_status(:ok)
+        titles = response.parsed_body.map { |task| task["title"] }
+        expect(titles).to eq(["Mine"])
+      end
+
       it "filters by partial title match case-insensitively" do
         user.tasks.create!(title: "Meeting prep", status: :todo, priority: :low)
         user.tasks.create!(title: "Other", status: :todo, priority: :low)

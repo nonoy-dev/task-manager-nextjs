@@ -4,7 +4,7 @@ module Api
     before_action :set_task, only: %i[show update destroy]
 
     def index
-      tasks = Task.all
+      tasks = current_user_tasks
       tasks = apply_title_description_search(tasks, params[:q])
       tasks = apply_status_filter(tasks, params[:status])
       tasks = apply_priority_filter(tasks, params[:priority])
