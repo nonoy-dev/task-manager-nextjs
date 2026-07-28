@@ -257,7 +257,7 @@ RSpec.describe "Api::Tasks", type: :request do
     end
 
     describe "POST /api/tasks" do
-      it "returns 422 when the task has no user" do
+      it "creates a task for the current user" do
         expect {
           post api_tasks_path,
                params: {
@@ -269,10 +269,37 @@ RSpec.describe "Api::Tasks", type: :request do
                  },
                },
                as: :json
-        }.not_to change(Task, :count)
+        }.to change { user.tasks.count }.by(1)
 
-        expect(response).to have_http_status(:unprocessable_content)
-        expect(response.parsed_body["errors"]).to include("User must exist")
+        expect(response).to have_http_status(:created)
+        json = response.parsed_body
+        expect(json["title"]).to eq("New from API")
+        expect(json["status"]).to eq("todo")
+        expect(json["priority"]).to eq("medium")
+        expect(user.tasks.find(json["id"]).user_id).to eq(user.id)
+        expect_task_json_shape(json)
+      end
+
+      it "does not assign the task to another user when user_id is sent" do
+        other = User.create!(
+          email: "other-create@example.com",
+          password: "password",
+          password_confirmation: "password",
+        )
+
+        post api_tasks_path,
+             params: {
+               task: {
+                 title: "Scoped create",
+                 user_id: other.id,
+               },
+             },
+             as: :json
+
+        expect(response).to have_http_status(:created)
+        created = user.tasks.find(response.parsed_body["id"])
+        expect(created.user_id).to eq(user.id)
+        expect(other.tasks).to be_empty
       end
 
       it "returns 422 when title is blank" do
