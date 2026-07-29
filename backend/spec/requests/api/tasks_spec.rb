@@ -235,6 +235,20 @@ RSpec.describe "Api::Tasks", type: :request do
         expect(response).to have_http_status(:not_found)
         expect(response.parsed_body["error"]).to eq("Task not found")
       end
+
+      it "returns not found when the task belongs to another user" do
+        other = User.create!(
+          email: "other-show@example.com",
+          password: "password",
+          password_confirmation: "password",
+        )
+        other_task = other.tasks.create!(title: "Other show", status: :todo, priority: :low)
+
+        get api_task_path(other_task)
+
+        expect(response).to have_http_status(:not_found)
+        expect(response.parsed_body["error"]).to eq("Task not found")
+      end
     end
 
     describe "DELETE /api/tasks/:id" do
@@ -250,6 +264,22 @@ RSpec.describe "Api::Tasks", type: :request do
 
       it "returns not found when task does not exist" do
         delete api_task_path(999_999)
+
+        expect(response).to have_http_status(:not_found)
+        expect(response.parsed_body["error"]).to eq("Task not found")
+      end
+
+      it "returns not found when the task belongs to another user" do
+        other = User.create!(
+          email: "other-destroy@example.com",
+          password: "password",
+          password_confirmation: "password",
+        )
+        other_task = other.tasks.create!(title: "Other delete", status: :todo, priority: :low)
+
+        expect {
+          delete api_task_path(other_task)
+        }.not_to change(Task, :count)
 
         expect(response).to have_http_status(:not_found)
         expect(response.parsed_body["error"]).to eq("Task not found")
@@ -356,6 +386,21 @@ RSpec.describe "Api::Tasks", type: :request do
 
         expect(response).to have_http_status(:not_found)
         expect(response.parsed_body["error"]).to eq("Task not found")
+      end
+
+      it "returns not found when the task belongs to another user" do
+        other = User.create!(
+          email: "other-update@example.com",
+          password: "password",
+          password_confirmation: "password",
+        )
+        other_task = other.tasks.create!(title: "Other update", status: :todo, priority: :low)
+
+        patch api_task_path(other_task), params: { task: { status: "done" } }, as: :json
+
+        expect(response).to have_http_status(:not_found)
+        expect(response.parsed_body["error"]).to eq("Task not found")
+        expect(other_task.reload.status).to eq("todo")
       end
     end
   end
