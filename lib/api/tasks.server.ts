@@ -1,9 +1,8 @@
 import "server-only";
 
-import { cookies } from "next/headers";
 import { NETWORK_ERROR_MESSAGE, UNAUTHORIZED_MESSAGE } from "@/lib/api/errors";
 import { TASK_NOT_FOUND_MESSAGE } from "@/lib/api/tasks.client";
-import { SESSION_COOKIE_NAME } from "@/lib/auth/sessionCookie";
+import { sessionCookieHeader } from "@/lib/auth/sessionCookieHeader.server";
 import {
   parseTaskDto,
   parseTaskDtos,
@@ -22,17 +21,6 @@ function fetchTasksError(status: number): Error {
     return new Error(UNAUTHORIZED_MESSAGE);
   }
   return new Error(`タスクの取得に失敗しました (${status})`);
-}
-
-async function sessionCookieHeader(): Promise<HeadersInit | undefined> {
-  const cookieStore = await cookies();
-  const session = cookieStore.get(SESSION_COOKIE_NAME);
-  if (!session) {
-    return undefined;
-  }
-  return {
-    Cookie: `${SESSION_COOKIE_NAME}=${encodeURIComponent(session.value)}`,
-  };
 }
 
 async function withNetworkError(
