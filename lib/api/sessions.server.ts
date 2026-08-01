@@ -5,7 +5,7 @@ import {
   UNAUTHORIZED_MESSAGE,
 } from "@/lib/api/errors";
 import type { SessionUser } from "@/lib/api/sessions.client";
-import { sessionCookieHeader } from "@/lib/auth/sessionCookieHeader.server";
+import { sessionCookieHeader } from "@/lib/auth/sessionCookieHeader";
 
 const SESSION_API_PATH = "/api/session";
 

@@ -2,7 +2,7 @@ import "server-only";
 
 import { NETWORK_ERROR_MESSAGE, UNAUTHORIZED_MESSAGE } from "@/lib/api/errors";
 import { TASK_NOT_FOUND_MESSAGE } from "@/lib/api/tasks.client";
-import { sessionCookieHeader } from "@/lib/auth/sessionCookieHeader.server";
+import { sessionCookieHeader } from "@/lib/auth/sessionCookieHeader";
 import {
   parseTaskDto,
   parseTaskDtos,
