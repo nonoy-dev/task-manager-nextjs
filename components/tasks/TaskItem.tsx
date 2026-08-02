@@ -34,7 +34,9 @@ export function TaskItem({ task }: TaskItemProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [statusError, setStatusError] = useState<string | null>(null);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
-  const next = nextStatus(task.status);
+  const [statusOverride, setStatusOverride] = useState<TaskStatus | null>(null);
+  const status = statusOverride ?? task.status;
+  const next = nextStatus(status);
 
   async function handleStatusToggle() {
     setStatusError(null);
@@ -45,6 +47,7 @@ export function TaskItem({ task }: TaskItemProps) {
         ...valuesFromTask(task),
         status: next,
       });
+      setStatusOverride(next);
       router.refresh();
     } catch (error) {
       setStatusError(
@@ -78,7 +81,7 @@ export function TaskItem({ task }: TaskItemProps) {
       <div className="flex flex-wrap items-center gap-2">
         <h2 className="text-lg font-medium">{task.title}</h2>
         <span className="rounded-full bg-foreground/10 px-2 py-0.5 text-xs">
-          {taskStatusLabel(task.status)}
+          {taskStatusLabel(status)}
         </span>
         <span className="rounded-full bg-foreground/5 px-2 py-0.5 text-xs text-foreground/70">
           優先度: {taskPriorityLabel(task.priority)}
