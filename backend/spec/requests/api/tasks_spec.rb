@@ -59,6 +59,22 @@ RSpec.describe "Api::Tasks", type: :request do
         expect_task_json_shape(json.first)
       end
 
+      it "does not include other users tasks" do
+        other = User.create!(
+          email: "other-tasks@example.com",
+          password: "password",
+          password_confirmation: "password",
+        )
+        other.tasks.create!(title: "Other user task", status: :todo, priority: :low)
+        user.tasks.create!(title: "Mine", status: :todo, priority: :low)
+
+        get api_tasks_path
+
+        expect(response).to have_http_status(:ok)
+        titles = response.parsed_body.map { |task| task["title"] }
+        expect(titles).to eq(["Mine"])
+      end
+
       it "filters by partial title match case-insensitively" do
         user.tasks.create!(title: "Meeting prep", status: :todo, priority: :low)
         user.tasks.create!(title: "Other", status: :todo, priority: :low)
@@ -219,6 +235,20 @@ RSpec.describe "Api::Tasks", type: :request do
         expect(response).to have_http_status(:not_found)
         expect(response.parsed_body["error"]).to eq("Task not found")
       end
+
+      it "returns not found when the task belongs to another user" do
+        other = User.create!(
+          email: "other-show@example.com",
+          password: "password",
+          password_confirmation: "password",
+        )
+        other_task = other.tasks.create!(title: "Other show", status: :todo, priority: :low)
+
+        get api_task_path(other_task)
+
+        expect(response).to have_http_status(:not_found)
+        expect(response.parsed_body["error"]).to eq("Task not found")
+      end
     end
 
     describe "DELETE /api/tasks/:id" do
@@ -238,10 +268,26 @@ RSpec.describe "Api::Tasks", type: :request do
         expect(response).to have_http_status(:not_found)
         expect(response.parsed_body["error"]).to eq("Task not found")
       end
+
+      it "returns not found when the task belongs to another user" do
+        other = User.create!(
+          email: "other-destroy@example.com",
+          password: "password",
+          password_confirmation: "password",
+        )
+        other_task = other.tasks.create!(title: "Other delete", status: :todo, priority: :low)
+
+        expect {
+          delete api_task_path(other_task)
+        }.not_to change(Task, :count)
+
+        expect(response).to have_http_status(:not_found)
+        expect(response.parsed_body["error"]).to eq("Task not found")
+      end
     end
 
     describe "POST /api/tasks" do
-      it "returns 422 when the task has no user" do
+      it "creates a task for the current user" do
         expect {
           post api_tasks_path,
                params: {
@@ -253,10 +299,37 @@ RSpec.describe "Api::Tasks", type: :request do
                  },
                },
                as: :json
-        }.not_to change(Task, :count)
+        }.to change { user.tasks.count }.by(1)
 
-        expect(response).to have_http_status(:unprocessable_content)
-        expect(response.parsed_body["errors"]).to include("User must exist")
+        expect(response).to have_http_status(:created)
+        json = response.parsed_body
+        expect(json["title"]).to eq("New from API")
+        expect(json["status"]).to eq("todo")
+        expect(json["priority"]).to eq("medium")
+        expect(user.tasks.find(json["id"]).user_id).to eq(user.id)
+        expect_task_json_shape(json)
+      end
+
+      it "does not assign the task to another user when user_id is sent" do
+        other = User.create!(
+          email: "other-create@example.com",
+          password: "password",
+          password_confirmation: "password",
+        )
+
+        post api_tasks_path,
+             params: {
+               task: {
+                 title: "Scoped create",
+                 user_id: other.id,
+               },
+             },
+             as: :json
+
+        expect(response).to have_http_status(:created)
+        created = user.tasks.find(response.parsed_body["id"])
+        expect(created.user_id).to eq(user.id)
+        expect(other.tasks).to be_empty
       end
 
       it "returns 422 when title is blank" do
@@ -313,6 +386,21 @@ RSpec.describe "Api::Tasks", type: :request do
 
         expect(response).to have_http_status(:not_found)
         expect(response.parsed_body["error"]).to eq("Task not found")
+      end
+
+      it "returns not found when the task belongs to another user" do
+        other = User.create!(
+          email: "other-update@example.com",
+          password: "password",
+          password_confirmation: "password",
+        )
+        other_task = other.tasks.create!(title: "Other update", status: :todo, priority: :low)
+
+        patch api_task_path(other_task), params: { task: { status: "done" } }, as: :json
+
+        expect(response).to have_http_status(:not_found)
+        expect(response.parsed_body["error"]).to eq("Task not found")
+        expect(other_task.reload.status).to eq("todo")
       end
     end
   end
