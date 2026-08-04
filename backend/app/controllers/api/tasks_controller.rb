@@ -4,7 +4,7 @@ module Api
     before_action :set_task, only: %i[show update destroy]
 
     def index
-      tasks = Task.all
+      tasks = current_user_tasks
       tasks = apply_title_description_search(tasks, params[:q])
       tasks = apply_status_filter(tasks, params[:status])
       tasks = apply_priority_filter(tasks, params[:priority])
@@ -17,7 +17,7 @@ module Api
     end
 
     def create
-      task = Task.new(task_params)
+      task = current_user_tasks.build(task_params)
 
       if task.save
         render json: task, status: :created
@@ -42,7 +42,7 @@ module Api
     private
 
     def set_task
-      @task = Task.find(params[:id])
+      @task = current_user_tasks.find(params[:id])
     rescue ActiveRecord::RecordNotFound
       render json: { error: "Task not found" }, status: :not_found
     end

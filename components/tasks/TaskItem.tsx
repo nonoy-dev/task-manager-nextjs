@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useOptimistic, useState, useTransition } from "react";
 import { readApiClientError } from "@/lib/api/errors";
 import { deleteTask, updateTask } from "@/lib/api/tasks.client";
 import {
@@ -33,26 +33,31 @@ export function TaskItem({ task }: TaskItemProps) {
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [statusError, setStatusError] = useState<string | null>(null);
-  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
-  const next = nextStatus(task.status);
+  const [isUpdatingStatus, startStatusTransition] = useTransition();
+  const [status, setOptimisticStatus] = useOptimistic(
+    task.status,
+    (_current, next: TaskStatus) => next,
+  );
+  const next = nextStatus(status);
 
-  async function handleStatusToggle() {
+  function handleStatusToggle() {
+    const target = next;
     setStatusError(null);
-    setIsUpdatingStatus(true);
 
-    try {
-      await updateTask(task.id, {
-        ...valuesFromTask(task),
-        status: next,
-      });
-      router.refresh();
-    } catch (error) {
-      setStatusError(
-        readApiClientError(error, "ステータスの更新に失敗しました"),
-      );
-    } finally {
-      setIsUpdatingStatus(false);
-    }
+    startStatusTransition(async () => {
+      setOptimisticStatus(target);
+      try {
+        await updateTask(task.id, {
+          ...valuesFromTask(task),
+          status: target,
+        });
+        router.refresh();
+      } catch (error) {
+        setStatusError(
+          readApiClientError(error, "ステータスの更新に失敗しました"),
+        );
+      }
+    });
   }
 
   async function handleDelete() {
@@ -78,7 +83,7 @@ export function TaskItem({ task }: TaskItemProps) {
       <div className="flex flex-wrap items-center gap-2">
         <h2 className="text-lg font-medium">{task.title}</h2>
         <span className="rounded-full bg-foreground/10 px-2 py-0.5 text-xs">
-          {taskStatusLabel(task.status)}
+          {taskStatusLabel(status)}
         </span>
         <span className="rounded-full bg-foreground/5 px-2 py-0.5 text-xs text-foreground/70">
           優先度: {taskPriorityLabel(task.priority)}
@@ -104,14 +109,10 @@ export function TaskItem({ task }: TaskItemProps) {
         <button
           type="button"
           disabled={isUpdatingStatus || isDeleting}
-          onClick={() => {
-            void handleStatusToggle();
-          }}
+          onClick={handleStatusToggle}
           className="text-sm text-foreground/70 hover:text-foreground hover:underline disabled:opacity-50"
         >
-          {isUpdatingStatus
-            ? "更新中..."
-            : `${taskStatusLabel(next)}へ`}
+          {`${taskStatusLabel(next)}へ`}
         </button>
         <Link
           href={`/tasks/${task.id}/edit`}

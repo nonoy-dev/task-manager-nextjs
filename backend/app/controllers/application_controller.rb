@@ -7,6 +7,10 @@ class ApplicationController < ActionController::API
     @current_user ||= User.find_by(id: session[:user_id])
   end
 
+  def current_user_tasks
+    current_user.tasks
+  end
+
   def authenticate_user!
     return if current_user
 
