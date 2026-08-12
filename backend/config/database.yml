@@ -36,21 +36,18 @@ test:
   database: task_manager_nextjs_test
   <% end %>
 
-# Store production database in the storage/ directory, which by default
-# is mounted as a persistent Docker volume in config/deploy.yml.
 production:
-  primary:
-    <<: *sqlite
-    database: storage/production.sqlite3
+  primary: &primary_production
+    <<: *default
+    adapter: postgresql
+    encoding: unicode
+    url: <%= ENV.fetch("DATABASE_URL") %>
   cache:
-    <<: *sqlite
-    database: storage/production_cache.sqlite3
+    <<: *primary_production
     migrations_paths: db/cache_migrate
   queue:
-    <<: *sqlite
-    database: storage/production_queue.sqlite3
+    <<: *primary_production
     migrations_paths: db/queue_migrate
   cable:
-    <<: *sqlite
-    database: storage/production_cable.sqlite3
+    <<: *primary_production
     migrations_paths: db/cable_migrate
