@@ -6,15 +6,24 @@ import {
   readApiClientError,
 } from "@/lib/api/errors";
 import { fetchTasks } from "@/lib/api/tasks.server";
+import {
+  parseTaskListQuery,
+  type TaskListSearchParams,
+} from "@/lib/tasks/taskListQuery";
 import { type Task, tasksFromDto } from "@/lib/types/task";
 
-export default async function Home() {
+type HomeProps = {
+  searchParams: Promise<TaskListSearchParams>;
+};
+
+export default async function Home({ searchParams }: HomeProps) {
+  const query = parseTaskListQuery(await searchParams);
   let tasks: Task[] = [];
   let listError: string | null = null;
   let unauthorized = false;
 
   try {
-    tasks = tasksFromDto(await fetchTasks());
+    tasks = tasksFromDto(await fetchTasks(query));
   } catch (error) {
     unauthorized = isUnauthorizedError(error);
     listError = readApiClientError(error, "タスクの取得に失敗しました");
