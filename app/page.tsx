@@ -1,5 +1,6 @@
 import { RefreshableErrorBanner } from "@/components/shared/ErrorBanner";
 import { TaskCreateForm } from "@/components/tasks/TaskCreateForm";
+import { TaskFilterForm } from "@/components/tasks/TaskFilterForm";
 import { TaskList } from "@/components/tasks/TaskList";
 import {
   isUnauthorizedError,
@@ -33,9 +34,12 @@ export default async function Home({ searchParams }: HomeProps) {
     <main className="p-8">
       <h1 className="text-2xl font-semibold">タスク一覧</h1>
       {!unauthorized && (
-        <div className="mt-4">
-          <TaskCreateForm />
-        </div>
+        <>
+          <TaskFilterForm query={query} />
+          <div className="mt-4">
+            <TaskCreateForm />
+          </div>
+        </>
       )}
       {listError ? (
         <div className="mt-4">
