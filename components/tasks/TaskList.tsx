@@ -3,12 +3,17 @@ import { TaskItem } from "./TaskItem";
 
 type TaskListProps = {
   tasks: Task[];
+  hasFilters?: boolean;
 };
 
-export function TaskList({ tasks }: TaskListProps) {
+export function TaskList({ tasks, hasFilters = false }: TaskListProps) {
   if (tasks.length === 0) {
     return (
-      <p className="mt-4 text-foreground/70">タスクはまだありません。</p>
+      <p className="mt-4 text-foreground/70">
+        {hasFilters
+          ? "条件に一致するタスクはありません。"
+          : "タスクはまだありません。"}
+      </p>
     );
   }
 
