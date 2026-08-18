@@ -4,6 +4,10 @@ import { NETWORK_ERROR_MESSAGE, UNAUTHORIZED_MESSAGE } from "@/lib/api/errors";
 import { TASK_NOT_FOUND_MESSAGE } from "@/lib/api/tasks.client";
 import { sessionCookieHeader } from "@/lib/auth/sessionCookieHeader";
 import {
+  taskListQueryString,
+  type TaskListQuery,
+} from "@/lib/tasks/taskListQuery";
+import {
   parseTaskDto,
   parseTaskDtos,
   type TaskDto,
@@ -11,9 +15,11 @@ import {
 
 const TASKS_API_PATH = "/api/tasks";
 
-function tasksUrl(path = ""): string {
+function tasksUrl(path = "", query: TaskListQuery = {}): string {
   const base = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001";
-  return `${base}${TASKS_API_PATH}${path}`;
+  const qs = taskListQueryString(query);
+  const url = `${base}${TASKS_API_PATH}${path}`;
+  return qs ? `${url}?${qs}` : url;
 }
 
 function fetchTasksError(status: number): Error {
@@ -40,8 +46,10 @@ async function apiFetch(
   return withNetworkError(fetch(url, init));
 }
 
-export async function fetchTasks(): Promise<TaskDto[]> {
-  const res = await apiFetch(tasksUrl(), {
+export async function fetchTasks(
+  query: TaskListQuery = {},
+): Promise<TaskDto[]> {
+  const res = await apiFetch(tasksUrl("", query), {
     cache: "no-store",
     headers: await sessionCookieHeader(),
   });

@@ -17,7 +17,7 @@ import {
   TASK_NOT_FOUND_MESSAGE,
   taskMutationBody,
 } from "./tasks.client";
-import { fetchTask } from "./tasks.server";
+import { fetchTask, fetchTasks } from "./tasks.server";
 
 const sampleInput = {
   title: "買い物",
@@ -107,6 +107,21 @@ describe("task API fetch errors", () => {
       expect.stringContaining("/api/tasks/99"),
       expect.not.objectContaining({
         credentials: "include",
+      }),
+    );
+  });
+
+  it("fetchTasks appends the list query to the request URL", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      mockResponse(200, []),
+    );
+
+    await fetchTasks({ q: "foo" });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining("/api/tasks?q=foo"),
+      expect.objectContaining({
+        cache: "no-store",
       }),
     );
   });
