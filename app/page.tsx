@@ -8,6 +8,7 @@ import {
 } from "@/lib/api/errors";
 import { fetchTasks } from "@/lib/api/tasks.server";
 import {
+  hasTaskListFilters,
   parseTaskListQuery,
   type TaskListSearchParams,
 } from "@/lib/tasks/taskListQuery";
@@ -50,7 +51,7 @@ export default async function Home({ searchParams }: HomeProps) {
           />
         </div>
       ) : (
-        <TaskList tasks={tasks} />
+        <TaskList tasks={tasks} hasFilters={hasTaskListFilters(query)} />
       )}
     </main>
   );

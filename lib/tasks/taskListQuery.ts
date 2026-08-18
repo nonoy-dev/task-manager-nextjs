@@ -103,3 +103,7 @@ export function taskListQuerySearchParams(
 export function taskListQueryString(query: TaskListQuery): string {
   return taskListQuerySearchParams(query).toString();
 }
+
+export function hasTaskListFilters(query: TaskListQuery): boolean {
+  return Boolean(query.q || query.status || query.priority);
+}
