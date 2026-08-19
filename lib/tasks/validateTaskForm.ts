@@ -1,4 +1,7 @@
 import type { TaskMutationInput } from "@/lib/api/tasks.client";
+import { todayDateString } from "@/lib/tasks/dateUtils";
+
+export { todayDateString };
 
 export type TaskFormValues = TaskMutationInput;
 
@@ -7,10 +10,6 @@ export type TaskFormErrors = Partial<Record<keyof TaskFormValues, string>>;
 export const TITLE_MAX_LENGTH = 50;
 export const DESCRIPTION_MAX_LENGTH = 300;
 export const TAGS_MAX_LENGTH = 50;
-
-export function todayDateString(): string {
-  return new Date().toISOString().slice(0, 10);
-}
 
 export type ValidateFormOptions = {
   allowPastDueDate?: boolean;
