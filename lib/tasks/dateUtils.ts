@@ -2,8 +2,8 @@ const jstFormatter = new Intl.DateTimeFormat("en-CA", {
   timeZone: "Asia/Tokyo",
 });
 
-export function todayDateString(now: Date = new Date()): string {
-  return jstFormatter.format(now);
+export function todayDateString(): string {
+  return jstFormatter.format(new Date());
 }
 
 export function dateStringFromIso(iso: string): string {
@@ -30,13 +30,12 @@ export type DueDateUrgency = (typeof DUE_DATE_URGENCIES)[number];
 
 export function classifyDueDateUrgency(
   dueDate: string | null | undefined,
-  now: Date = new Date(),
 ): DueDateUrgency {
   if (!dueDate) {
     return "none";
   }
 
-  const today = todayDateString(now);
+  const today = todayDateString();
   const due = dateStringFromIso(dueDate);
   const daysUntilDue = calendarDaysBetween(today, due);
 
