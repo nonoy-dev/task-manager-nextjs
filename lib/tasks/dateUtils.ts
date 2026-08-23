@@ -29,9 +29,9 @@ export const DUE_DATE_URGENCIES = [
 export type DueDateUrgency = (typeof DUE_DATE_URGENCIES)[number];
 
 export function classifyDueDateUrgency(
-  dueDate: string | null | undefined,
+  dueDate: string | null,
 ): DueDateUrgency {
-  if (!dueDate) {
+  if (dueDate === null) {
     return "none";
   }
 
