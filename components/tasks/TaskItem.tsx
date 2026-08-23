@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { useOptimistic, useState, useTransition } from "react";
 import { readApiClientError } from "@/lib/api/errors";
 import { deleteTask, updateTask } from "@/lib/api/tasks.client";
+import { classifyDueDateUrgency } from "@/lib/tasks/dateUtils";
+import { dueDateUrgencyLabel } from "@/lib/tasks/dueDateUrgencyLabels";
 import {
   taskPriorityLabel,
   taskStatusLabel,
@@ -30,6 +32,9 @@ function nextStatus(current: TaskStatus): TaskStatus {
 export function TaskItem({ task }: TaskItemProps) {
   const router = useRouter();
   const dueDate = formatDueDate(task.dueDate);
+  const urgency = classifyDueDateUrgency(task.dueDate);
+  const isOverdue = urgency === "overdue";
+  const urgencyLabel = isOverdue ? dueDateUrgencyLabel(urgency) : null;
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [statusError, setStatusError] = useState<string | null>(null);
@@ -98,7 +103,20 @@ export function TaskItem({ task }: TaskItemProps) {
         </p>
       )}
       {dueDate && (
-        <p className="mt-2 text-sm text-foreground/60">期限: {dueDate}</p>
+        <p
+          className={
+            isOverdue
+              ? "mt-2 flex flex-wrap items-center gap-2 text-sm text-red-600"
+              : "mt-2 text-sm text-foreground/60"
+          }
+        >
+          <span>期限: {dueDate}</span>
+          {urgencyLabel && (
+            <span className="rounded-full bg-red-600/10 px-2 py-0.5 text-xs">
+              {urgencyLabel}
+            </span>
+          )}
+        </p>
       )}
       {(statusError || deleteError) && (
         <p className="mt-2 text-sm text-red-600">
