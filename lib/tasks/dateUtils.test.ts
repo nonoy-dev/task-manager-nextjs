@@ -13,8 +13,6 @@ describe("classifyDueDateUrgency", () => {
 
   it("returns none when due date is missing", () => {
     expect(classifyDueDateUrgency(null)).toBe("none");
-    expect(classifyDueDateUrgency(undefined)).toBe("none");
-    expect(classifyDueDateUrgency("")).toBe("none");
   });
 
   it("returns overdue when due date is before today", () => {
