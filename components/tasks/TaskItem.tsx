@@ -5,7 +5,10 @@ import { useRouter } from "next/navigation";
 import { useOptimistic, useState, useTransition } from "react";
 import { readApiClientError } from "@/lib/api/errors";
 import { deleteTask, updateTask } from "@/lib/api/tasks.client";
-import { classifyDueDateUrgency } from "@/lib/tasks/dateUtils";
+import {
+  classifyDueDateUrgency,
+  type DueDateUrgency,
+} from "@/lib/tasks/dateUtils";
 import { dueDateUrgencyLabel } from "@/lib/tasks/dueDateUrgencyLabels";
 import {
   taskPriorityLabel,
@@ -23,6 +26,23 @@ function formatDueDate(iso: string | null): string | null {
   return new Date(iso).toLocaleDateString("ja-JP");
 }
 
+const DUE_DATE_ROW_CLASS: Record<DueDateUrgency, string> = {
+  none: "mt-2 text-sm text-foreground/60",
+  overdue: "mt-2 flex flex-wrap items-center gap-2 text-sm text-red-600",
+  today: "mt-2 flex flex-wrap items-center gap-2 text-sm font-medium text-foreground",
+  this_week: "mt-2 flex flex-wrap items-center gap-2 text-sm text-foreground/70",
+  later: "mt-2 text-sm text-foreground/60",
+};
+
+const DUE_DATE_BADGE_CLASS: Record<
+  Extract<DueDateUrgency, "overdue" | "today" | "this_week">,
+  string
+> = {
+  overdue: "rounded-full bg-red-600/10 px-2 py-0.5 text-xs",
+  today: "rounded-full bg-foreground/10 px-2 py-0.5 text-xs",
+  this_week: "rounded-full bg-foreground/5 px-2 py-0.5 text-xs",
+};
+
 function nextStatus(current: TaskStatus): TaskStatus {
   if (current === "todo") return "in_progress";
   if (current === "in_progress") return "done";
@@ -33,8 +53,11 @@ export function TaskItem({ task }: TaskItemProps) {
   const router = useRouter();
   const dueDate = formatDueDate(task.dueDate);
   const urgency = classifyDueDateUrgency(task.dueDate);
-  const isOverdue = urgency === "overdue";
-  const urgencyLabel = isOverdue ? dueDateUrgencyLabel(urgency) : null;
+  const urgencyLabel = dueDateUrgencyLabel(urgency);
+  const urgencyBadgeClass =
+    urgency === "overdue" || urgency === "today" || urgency === "this_week"
+      ? DUE_DATE_BADGE_CLASS[urgency]
+      : null;
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [statusError, setStatusError] = useState<string | null>(null);
@@ -103,16 +126,10 @@ export function TaskItem({ task }: TaskItemProps) {
         </p>
       )}
       {dueDate && (
-        <p
-          className={
-            isOverdue
-              ? "mt-2 flex flex-wrap items-center gap-2 text-sm text-red-600"
-              : "mt-2 text-sm text-foreground/60"
-          }
-        >
+        <p className={DUE_DATE_ROW_CLASS[urgency]}>
           <span>期限: {dueDate}</span>
-          {urgencyLabel && (
-            <span className="rounded-full bg-red-600/10 px-2 py-0.5 text-xs">
+          {urgencyLabel && urgencyBadgeClass && (
+            <span className={urgencyBadgeClass}>
               {urgencyLabel}
             </span>
           )}
