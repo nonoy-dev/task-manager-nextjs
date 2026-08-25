@@ -52,12 +52,6 @@ function nextStatus(current: TaskStatus): TaskStatus {
 export function TaskItem({ task }: TaskItemProps) {
   const router = useRouter();
   const dueDate = formatDueDate(task.dueDate);
-  const urgency = classifyDueDateUrgency(task.dueDate);
-  const urgencyLabel = dueDateUrgencyLabel(urgency);
-  const urgencyBadgeClass =
-    urgency === "overdue" || urgency === "today" || urgency === "this_week"
-      ? DUE_DATE_BADGE_CLASS[urgency]
-      : null;
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [statusError, setStatusError] = useState<string | null>(null);
@@ -67,6 +61,19 @@ export function TaskItem({ task }: TaskItemProps) {
     (_current, next: TaskStatus) => next,
   );
   const next = nextStatus(status);
+  const urgency = classifyDueDateUrgency(task.dueDate);
+  const showDueDateUrgency = status !== "done";
+  const urgencyLabel = showDueDateUrgency
+    ? dueDateUrgencyLabel(urgency)
+    : null;
+  const urgencyBadgeClass =
+    showDueDateUrgency &&
+    (urgency === "overdue" || urgency === "today" || urgency === "this_week")
+      ? DUE_DATE_BADGE_CLASS[urgency]
+      : null;
+  const dueDateRowClass = showDueDateUrgency
+    ? DUE_DATE_ROW_CLASS[urgency]
+    : DUE_DATE_ROW_CLASS.later;
 
   function handleStatusToggle() {
     const target = next;
@@ -126,7 +133,7 @@ export function TaskItem({ task }: TaskItemProps) {
         </p>
       )}
       {dueDate && (
-        <p className={DUE_DATE_ROW_CLASS[urgency]}>
+        <p className={dueDateRowClass}>
           <span>期限: {dueDate}</span>
           {urgencyLabel && urgencyBadgeClass && (
             <span className={urgencyBadgeClass}>
