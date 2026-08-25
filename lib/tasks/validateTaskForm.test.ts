@@ -19,7 +19,7 @@ const validValues: TaskFormValues = {
 describe("validateFormValues", () => {
   beforeEach(() => {
     vi.useFakeTimers();
-    vi.setSystemTime(new Date("2026-06-20T00:00:00.000Z"));
+    vi.setSystemTime(new Date("2026-06-20T00:00:00+09:00"));
   });
 
   afterEach(() => {

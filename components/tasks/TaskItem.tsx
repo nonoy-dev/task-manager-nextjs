@@ -6,6 +6,11 @@ import { useOptimistic, useState, useTransition } from "react";
 import { readApiClientError } from "@/lib/api/errors";
 import { deleteTask, updateTask } from "@/lib/api/tasks.client";
 import {
+  classifyDueDateUrgency,
+  type DueDateUrgency,
+} from "@/lib/tasks/dateUtils";
+import { dueDateUrgencyLabel } from "@/lib/tasks/dueDateUrgencyLabels";
+import {
   taskPriorityLabel,
   taskStatusLabel,
 } from "@/lib/tasks/taskLabels";
@@ -20,6 +25,23 @@ function formatDueDate(iso: string | null): string | null {
   if (!iso) return null;
   return new Date(iso).toLocaleDateString("ja-JP");
 }
+
+const DUE_DATE_ROW_CLASS: Record<DueDateUrgency, string> = {
+  none: "mt-2 text-sm text-foreground/60",
+  overdue: "mt-2 flex flex-wrap items-center gap-2 text-sm text-red-600",
+  today: "mt-2 flex flex-wrap items-center gap-2 text-sm font-medium text-foreground",
+  this_week: "mt-2 flex flex-wrap items-center gap-2 text-sm text-foreground/70",
+  later: "mt-2 text-sm text-foreground/60",
+};
+
+const DUE_DATE_BADGE_CLASS: Record<
+  Extract<DueDateUrgency, "overdue" | "today" | "this_week">,
+  string
+> = {
+  overdue: "rounded-full bg-red-600/10 px-2 py-0.5 text-xs",
+  today: "rounded-full bg-foreground/10 px-2 py-0.5 text-xs",
+  this_week: "rounded-full bg-foreground/5 px-2 py-0.5 text-xs",
+};
 
 function nextStatus(current: TaskStatus): TaskStatus {
   if (current === "todo") return "in_progress";
@@ -39,6 +61,19 @@ export function TaskItem({ task }: TaskItemProps) {
     (_current, next: TaskStatus) => next,
   );
   const next = nextStatus(status);
+  const urgency = classifyDueDateUrgency(task.dueDate);
+  const showDueDateUrgency = status !== "done";
+  const urgencyLabel = showDueDateUrgency
+    ? dueDateUrgencyLabel(urgency)
+    : null;
+  const urgencyBadgeClass =
+    showDueDateUrgency &&
+    (urgency === "overdue" || urgency === "today" || urgency === "this_week")
+      ? DUE_DATE_BADGE_CLASS[urgency]
+      : null;
+  const dueDateRowClass = showDueDateUrgency
+    ? DUE_DATE_ROW_CLASS[urgency]
+    : DUE_DATE_ROW_CLASS.later;
 
   function handleStatusToggle() {
     const target = next;
@@ -98,7 +133,14 @@ export function TaskItem({ task }: TaskItemProps) {
         </p>
       )}
       {dueDate && (
-        <p className="mt-2 text-sm text-foreground/60">期限: {dueDate}</p>
+        <p className={dueDateRowClass}>
+          <span>期限: {dueDate}</span>
+          {urgencyLabel && urgencyBadgeClass && (
+            <span className={urgencyBadgeClass}>
+              {urgencyLabel}
+            </span>
+          )}
+        </p>
       )}
       {(statusError || deleteError) && (
         <p className="mt-2 text-sm text-red-600">
