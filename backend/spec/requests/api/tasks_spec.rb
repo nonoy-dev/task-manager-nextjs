@@ -338,7 +338,71 @@ RSpec.describe "Api::Tasks", type: :request do
         }.not_to change(Task, :count)
 
         expect(response).to have_http_status(:unprocessable_content)
-        expect(response.parsed_body["errors"]).to include("Title can't be blank")
+        expect(response.parsed_body["errors"]).to eq(["Title can't be blank"])
+      end
+
+      it "returns 422 when title exceeds 50 characters" do
+        expect {
+          post api_tasks_path,
+               params: { task: { title: "a" * 51 } },
+               as: :json
+        }.not_to change(Task, :count)
+
+        expect(response).to have_http_status(:unprocessable_content)
+        expect(response.parsed_body["errors"]).to eq([
+          "Title is too long (maximum is 50 characters)",
+        ])
+      end
+
+      it "returns 422 when description exceeds 300 characters" do
+        expect {
+          post api_tasks_path,
+               params: {
+                 task: {
+                   title: "Ok title",
+                   description: "a" * 301,
+                 },
+               },
+               as: :json
+        }.not_to change(Task, :count)
+
+        expect(response).to have_http_status(:unprocessable_content)
+        expect(response.parsed_body["errors"]).to eq([
+          "Description is too long (maximum is 300 characters)",
+        ])
+      end
+
+      it "returns 422 when tags exceed 50 characters" do
+        expect {
+          post api_tasks_path,
+               params: {
+                 task: {
+                   title: "Ok title",
+                   tags: "a" * 51,
+                 },
+               },
+               as: :json
+        }.not_to change(Task, :count)
+
+        expect(response).to have_http_status(:unprocessable_content)
+        expect(response.parsed_body["errors"]).to eq([
+          "Tags is too long (maximum is 50 characters)",
+        ])
+      end
+
+      it "creates a task when description and tags are blank" do
+        expect {
+          post api_tasks_path,
+               params: {
+                 task: {
+                   title: "Optional fields blank",
+                   description: "",
+                   tags: "",
+                 },
+               },
+               as: :json
+        }.to change { user.tasks.count }.by(1)
+        expect(response).to have_http_status(:created)
       end
     end
 
@@ -377,7 +441,7 @@ RSpec.describe "Api::Tasks", type: :request do
         patch api_task_path(task), params: { task: { title: "" } }, as: :json
 
         expect(response).to have_http_status(:unprocessable_content)
-        expect(response.parsed_body["errors"]).to include("Title can't be blank")
+        expect(response.parsed_body["errors"]).to eq(["Title can't be blank"])
         expect(task.reload.title).to eq("Keep")
       end
 
