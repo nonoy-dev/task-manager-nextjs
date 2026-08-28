@@ -10,15 +10,18 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_10_100000) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_28_100000) do
+  # These are extensions that must be enabled in order to support this database
+  enable_extension "pg_catalog.plpgsql"
+
   create_table "tasks", force: :cascade do |t|
     t.datetime "created_at", null: false
-    t.text "description"
+    t.string "description", limit: 300
     t.datetime "due_date"
     t.integer "priority", default: 1, null: false
     t.integer "status", default: 0, null: false
-    t.text "tags"
-    t.string "title", null: false
+    t.string "tags", limit: 50
+    t.string "title", limit: 50, null: false
     t.datetime "updated_at", null: false
     t.integer "user_id", null: false
     t.index ["user_id"], name: "index_tasks_on_user_id"
