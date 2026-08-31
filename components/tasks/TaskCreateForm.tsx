@@ -9,7 +9,10 @@ import {
   FormTextField,
 } from "@/components/shared/form";
 import { readApiClientError } from "@/lib/api/errors";
-import { createTask } from "@/lib/api/tasks.client";
+import {
+  createTask,
+  isTaskFieldValidationError,
+} from "@/lib/api/tasks.client";
 import {
   TASK_PRIORITY_OPTIONS,
   TASK_STATUS_OPTIONS,
@@ -58,6 +61,11 @@ export function TaskCreateForm() {
       setValues(initialValues);
       router.refresh();
     } catch (error) {
+      if (isTaskFieldValidationError(error)) {
+        setErrors(error.fieldErrors);
+        return;
+      }
+
       setSubmitError(readApiClientError(error, "タスクの作成に失敗しました"));
     } finally {
       setIsSubmitting(false);
