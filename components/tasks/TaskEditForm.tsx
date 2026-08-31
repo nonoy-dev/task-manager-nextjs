@@ -10,7 +10,10 @@ import {
   FormTextField,
 } from "@/components/shared/form";
 import { readApiClientError } from "@/lib/api/errors";
-import { updateTask } from "@/lib/api/tasks.client";
+import {
+  isTaskFieldValidationError,
+  updateTask,
+} from "@/lib/api/tasks.client";
 import {
   TASK_PRIORITY_OPTIONS,
   TASK_STATUS_OPTIONS,
@@ -57,6 +60,11 @@ export function TaskEditForm({ task }: TaskEditFormProps) {
       await updateTask(task.id, values);
       router.push("/");
     } catch (error) {
+      if (isTaskFieldValidationError(error)) {
+        setErrors(error.fieldErrors);
+        return;
+      }
+
       setSubmitError(readApiClientError(error, "タスクの更新に失敗しました"));
     } finally {
       setIsSubmitting(false);
