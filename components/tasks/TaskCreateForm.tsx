@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { ErrorBanner } from "@/components/shared/ErrorBanner";
 import {
   FormDateField,
   FormSelect,
@@ -146,9 +147,7 @@ export function TaskCreateForm() {
           }}
         />
 
-        {submitError && (
-          <p className="text-sm text-red-600">{submitError}</p>
-        )}
+        {submitError && <ErrorBanner message={submitError} />}
 
         <button
           type="submit"
