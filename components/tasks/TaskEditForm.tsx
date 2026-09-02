@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { ErrorBanner } from "@/components/shared/ErrorBanner";
 import {
   FormDateField,
   FormSelect,
@@ -143,9 +144,7 @@ export function TaskEditForm({ task }: TaskEditFormProps) {
           }}
         />
 
-        {submitError && (
-          <p className="text-sm text-red-600">{submitError}</p>
-        )}
+        {submitError && <ErrorBanner message={submitError} />}
 
         <div className="flex flex-wrap gap-3">
           <button
