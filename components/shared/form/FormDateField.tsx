@@ -1,3 +1,4 @@
+import { useId } from "react";
 import { fieldClass, labelClass } from "./formFieldStyles";
 
 type FormDateFieldProps = {
@@ -15,6 +16,8 @@ export function FormDateField({
   error,
   min,
 }: FormDateFieldProps) {
+  const errorId = useId();
+
   return (
     <label>
       <span className={labelClass}>{label}</span>
@@ -23,9 +26,15 @@ export function FormDateField({
         className={fieldClass(Boolean(error))}
         value={value}
         min={min}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={error ? errorId : undefined}
         onChange={(event) => onChange(event.target.value)}
       />
-      {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
+      {error && (
+        <p id={errorId} className="mt-1 text-sm text-red-600">
+          {error}
+        </p>
+      )}
     </label>
   );
 }
