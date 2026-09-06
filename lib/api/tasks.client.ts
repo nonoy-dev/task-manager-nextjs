@@ -1,5 +1,10 @@
 import { NETWORK_ERROR_MESSAGE, UNAUTHORIZED_MESSAGE } from "@/lib/api/errors";
 import {
+  isApiValidationErrors,
+  mapApiValidationErrors,
+} from "@/lib/tasks/mapApiValidationErrors";
+import type { TaskFormErrors } from "@/lib/tasks/validateTaskForm";
+import {
   parseTaskDto,
   type TaskDto,
   type TaskPriority,
@@ -16,6 +21,22 @@ export type TaskMutationInput = {
 };
 
 export const TASK_NOT_FOUND_MESSAGE = "Task not found";
+
+export class TaskFieldValidationError extends Error {
+  readonly fieldErrors: TaskFormErrors;
+
+  constructor(fieldErrors: TaskFormErrors) {
+    super("TaskFieldValidationError");
+    this.name = "TaskFieldValidationError";
+    this.fieldErrors = fieldErrors;
+  }
+}
+
+export function isTaskFieldValidationError(
+  error: unknown,
+): error is TaskFieldValidationError {
+  return error instanceof TaskFieldValidationError;
+}
 
 const TASKS_API_PATH = "/api/tasks";
 
@@ -40,6 +61,30 @@ export function taskMutationBody(input: TaskMutationInput) {
   };
 }
 
+async function readResponseBody(res: Response): Promise<{ errors?: unknown } | null> {
+  return (await res.json().catch(() => null)) as { errors?: unknown } | null;
+}
+
+async function throwTaskMutationError(
+  res: Response,
+  fallback: string,
+): Promise<never> {
+  if (res.status === 401) {
+    throw new Error(UNAUTHORIZED_MESSAGE);
+  }
+
+  const body = await readResponseBody(res);
+
+  if (res.status === 422 && body?.errors && isApiValidationErrors(body.errors)) {
+    const fieldErrors = mapApiValidationErrors(body.errors);
+    if (Object.keys(fieldErrors).length > 0) {
+      throw new TaskFieldValidationError(fieldErrors);
+    }
+  }
+
+  throw new Error(`${fallback} (${res.status})`);
+}
+
 async function mutationErrorMessage(
   res: Response,
   fallback: string,
@@ -48,10 +93,12 @@ async function mutationErrorMessage(
     return UNAUTHORIZED_MESSAGE;
   }
 
-  const body = (await res.json().catch(() => null)) as {
-    errors?: string[];
-  } | null;
-  return body?.errors?.join(", ") ?? `${fallback} (${res.status})`;
+  const body = await readResponseBody(res);
+  if (Array.isArray(body?.errors)) {
+    return body.errors.join(", ");
+  }
+
+  return `${fallback} (${res.status})`;
 }
 
 async function withNetworkError(
@@ -89,7 +136,7 @@ async function submitTaskMutation(
   });
 
   if (!res.ok) {
-    throw new Error(await mutationErrorMessage(res, fallback));
+    await throwTaskMutationError(res, fallback);
   }
 
   return parseTaskDto(await res.json());

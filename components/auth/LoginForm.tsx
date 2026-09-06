@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { ErrorBanner } from "@/components/shared/ErrorBanner";
 import { FormTextField } from "@/components/shared/form";
 import { readApiClientError } from "@/lib/api/errors";
 import { login } from "@/lib/api/sessions.client";
@@ -102,9 +103,7 @@ export function LoginForm() {
           }}
         />
 
-        {submitError && (
-          <p className="text-sm text-red-600">{submitError}</p>
-        )}
+        {submitError && <ErrorBanner message={submitError} />}
 
         <button
           type="submit"
