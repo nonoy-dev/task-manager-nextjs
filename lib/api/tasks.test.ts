@@ -14,6 +14,7 @@ import {
 } from "./errors";
 import {
   createTask,
+  TaskFieldValidationError,
   TASK_NOT_FOUND_MESSAGE,
   taskMutationBody,
 } from "./tasks.client";
@@ -58,6 +59,42 @@ describe("task API fetch errors", () => {
     );
 
     await expect(createTask(sampleInput)).rejects.toThrow(NETWORK_ERROR_MESSAGE);
+  });
+
+  it("createTask throws TaskFieldValidationError on keyed 422", async () => {
+    vi.spyOn(globalThis, "fetch").mockImplementation(() =>
+      Promise.resolve(
+        mockResponse(422, {
+          errors: {
+            title: ["can't be blank"],
+          },
+        }),
+      ),
+    );
+
+    const error = await createTask(sampleInput).catch((value) => value);
+    expect(error).toBeInstanceOf(TaskFieldValidationError);
+    expect(error).toMatchObject({
+      fieldErrors: {
+        title: "タイトルは必須です",
+      },
+    });
+  });
+
+  it("createTask throws fallback message on unmapped keyed 422", async () => {
+    vi.spyOn(globalThis, "fetch").mockImplementation(() =>
+      Promise.resolve(
+        mockResponse(422, {
+          errors: {
+            status: ["is invalid"],
+          },
+        }),
+      ),
+    );
+
+    await expect(createTask(sampleInput)).rejects.toThrow(
+      "タスクの作成に失敗しました (422)",
+    );
   });
 
   it("createTask sends credentials with the request", async () => {

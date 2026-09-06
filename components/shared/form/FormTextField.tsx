@@ -1,3 +1,4 @@
+import { useId } from "react";
 import { fieldClass, labelClass } from "./formFieldStyles";
 
 type FormTextFieldProps = {
@@ -23,6 +24,8 @@ export function FormTextField({
   autoComplete,
   name,
 }: FormTextFieldProps) {
+  const errorId = useId();
+
   return (
     <label>
       <span className={labelClass}>{label}</span>
@@ -34,9 +37,15 @@ export function FormTextField({
         value={value}
         maxLength={maxLength}
         placeholder={placeholder}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={error ? errorId : undefined}
         onChange={(event) => onChange(event.target.value)}
       />
-      {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
+      {error && (
+        <p id={errorId} className="mt-1 text-sm text-red-600">
+          {error}
+        </p>
+      )}
     </label>
   );
 }

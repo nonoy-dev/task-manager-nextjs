@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { ErrorBanner } from "@/components/shared/ErrorBanner";
 import {
   FormDateField,
   FormSelect,
@@ -10,7 +11,10 @@ import {
   FormTextField,
 } from "@/components/shared/form";
 import { readApiClientError } from "@/lib/api/errors";
-import { updateTask } from "@/lib/api/tasks.client";
+import {
+  isTaskFieldValidationError,
+  updateTask,
+} from "@/lib/api/tasks.client";
 import {
   TASK_PRIORITY_OPTIONS,
   TASK_STATUS_OPTIONS,
@@ -57,6 +61,11 @@ export function TaskEditForm({ task }: TaskEditFormProps) {
       await updateTask(task.id, values);
       router.push("/");
     } catch (error) {
+      if (isTaskFieldValidationError(error)) {
+        setErrors(error.fieldErrors);
+        return;
+      }
+
       setSubmitError(readApiClientError(error, "タスクの更新に失敗しました"));
     } finally {
       setIsSubmitting(false);
@@ -135,9 +144,7 @@ export function TaskEditForm({ task }: TaskEditFormProps) {
           }}
         />
 
-        {submitError && (
-          <p className="text-sm text-red-600">{submitError}</p>
-        )}
+        {submitError && <ErrorBanner message={submitError} />}
 
         <div className="flex flex-wrap gap-3">
           <button
