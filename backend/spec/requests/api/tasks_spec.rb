@@ -213,6 +213,132 @@ RSpec.describe "Api::Tasks", type: :request do
         json = response.parsed_body["tasks"]
         expect(json.map { |row| row["title"] }).to eq(%w[First Second])
       end
+
+      describe "pagination" do
+        def create_ordered_tasks(count)
+          count.times do |i|
+            task = user.tasks.create!(
+              title: format("Task %02d", i + 1),
+              status: :todo,
+              priority: :low,
+            )
+            task.update_column(:created_at, (count - i).minutes.ago)
+          end
+        end
+
+        it "returns the second page of tasks" do
+          create_ordered_tasks(21)
+
+          get api_tasks_path, params: { page: 2, sort: "created_at", direction: "asc" }
+
+          expect(response).to have_http_status(:ok)
+          json = response.parsed_body
+          expect(json["tasks"].map { |row| row["title"] }).to eq(["Task 21"])
+          expect(json["meta"]).to eq(
+            "page" => 2,
+            "per_page" => 20,
+            "total" => 21,
+            "total_pages" => 2,
+          )
+        end
+
+        it "returns the final partial page" do
+          create_ordered_tasks(25)
+
+          get api_tasks_path, params: { page: 2, sort: "created_at", direction: "asc" }
+
+          expect(response).to have_http_status(:ok)
+          json = response.parsed_body
+          expect(json["tasks"].map { |row| row["title"] }).to eq(
+            ["Task 21", "Task 22", "Task 23", "Task 24", "Task 25"],
+          )
+          expect(json["meta"]).to eq(
+            "page" => 2,
+            "per_page" => 20,
+            "total" => 25,
+            "total_pages" => 2,
+          )
+        end
+
+        it "returns an empty tasks array when page is beyond the last page" do
+          create_ordered_tasks(21)
+
+          get api_tasks_path, params: { page: 99, sort: "created_at", direction: "asc" }
+
+          expect(response).to have_http_status(:ok)
+          json = response.parsed_body
+          expect(json["tasks"]).to eq([])
+          expect(json["meta"]).to eq(
+            "page" => 99,
+            "per_page" => 20,
+            "total" => 21,
+            "total_pages" => 2,
+          )
+        end
+
+        it "normalizes invalid page values to page 1" do
+          create_ordered_tasks(21)
+
+          get api_tasks_path, params: { page: 0, sort: "created_at", direction: "asc" }
+
+          expect(response).to have_http_status(:ok)
+          json = response.parsed_body
+          expect(json["tasks"].size).to eq(20)
+          expect(json["tasks"].first["title"]).to eq("Task 01")
+          expect(json["meta"]).to include("page" => 1, "total" => 21, "total_pages" => 2)
+
+          get api_tasks_path, params: { page: "abc", sort: "created_at", direction: "asc" }
+
+          expect(response).to have_http_status(:ok)
+          expect(response.parsed_body["meta"]["page"]).to eq(1)
+          expect(response.parsed_body["tasks"].first["title"]).to eq("Task 01")
+        end
+
+        it "returns zero total_pages when there are no tasks" do
+          get api_tasks_path
+
+          expect(response).to have_http_status(:ok)
+          json = response.parsed_body
+          expect(json["tasks"]).to eq([])
+          expect(json["meta"]).to eq(
+            "page" => 1,
+            "per_page" => 20,
+            "total" => 0,
+            "total_pages" => 0,
+          )
+        end
+
+        it "paginates after filters so meta total reflects the filtered scope" do
+          create_ordered_tasks(5)
+          3.times do |i|
+            task = user.tasks.create!(
+              title: format("Done %02d", i + 1),
+              status: :done,
+              priority: :low,
+            )
+            task.update_column(:created_at, (3 - i).minutes.ago)
+          end
+
+          get api_tasks_path, params: {
+            status: "done",
+            page: 1,
+            sort: "created_at",
+            direction: "asc",
+          }
+
+          expect(response).to have_http_status(:ok)
+          json = response.parsed_body
+          expect(json["tasks"].map { |row| row["title"] }).to eq(
+            ["Done 01", "Done 02", "Done 03"],
+          )
+          expect(json["meta"]).to eq(
+            "page" => 1,
+            "per_page" => 20,
+            "total" => 3,
+            "total_pages" => 1,
+          )
+        end
+      end
     end
 
     describe "GET /api/tasks/:id" do
