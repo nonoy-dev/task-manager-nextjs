@@ -17,6 +17,7 @@ export type TaskListQuery = {
   priority?: TaskPriority;
   sort?: TaskListSort;
   direction?: TaskListDirection;
+  page?: number;
 };
 
 export type TaskListSearchParams = {
@@ -25,6 +26,7 @@ export type TaskListSearchParams = {
   priority?: string | string[];
   sort?: string | string[];
   direction?: string | string[];
+  page?: string | string[];
 };
 
 const QUERY_KEY_ORDER = [
@@ -48,6 +50,14 @@ function isTaskListSort(value: string): value is TaskListSort {
 
 function isTaskListDirection(value: string): value is TaskListDirection {
   return (TASK_LIST_DIRECTIONS as readonly string[]).includes(value);
+}
+
+function normalizePage(rawPage: string): number {
+  const page = Number.parseInt(rawPage, 10);
+  if (!Number.isFinite(page) || page < 1) {
+    return 1;
+  }
+  return page;
 }
 
 export function parseTaskListQuery(
@@ -82,6 +92,11 @@ export function parseTaskListQuery(
     query.direction = direction;
   }
 
+  const page = normalizePage(firstParam(params.page).trim());
+  if (page > 1) {
+    query.page = page;
+  }
+
   return query;
 }
 
@@ -95,6 +110,10 @@ export function taskListQuerySearchParams(
     if (value) {
       search.set(key, value);
     }
+  }
+
+  if (query.page != null && query.page > 1) {
+    search.set("page", String(query.page));
   }
 
   return search;
