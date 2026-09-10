@@ -9,8 +9,9 @@ import {
 } from "@/lib/tasks/taskListQuery";
 import {
   parseTaskDto,
-  parseTaskDtos,
+  parseTaskListResponse,
   type TaskDto,
+  type TaskListResponse,
 } from "@/lib/types/task";
 
 const TASKS_API_PATH = "/api/tasks";
@@ -48,7 +49,7 @@ async function apiFetch(
 
 export async function fetchTasks(
   query: TaskListQuery = {},
-): Promise<TaskDto[]> {
+): Promise<TaskListResponse> {
   const res = await apiFetch(tasksUrl("", query), {
     cache: "no-store",
     headers: await sessionCookieHeader(),
@@ -58,7 +59,7 @@ export async function fetchTasks(
     throw fetchTasksError(res.status);
   }
 
-  return parseTaskDtos(await res.json());
+  return parseTaskListResponse(await res.json());
 }
 
 export async function fetchTask(id: number): Promise<TaskDto> {
