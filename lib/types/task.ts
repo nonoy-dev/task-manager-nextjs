@@ -22,6 +22,21 @@ export type TaskDto = z.infer<typeof taskDtoSchema>;
 
 const taskDtoListSchema = z.array(taskDtoSchema);
 
+const taskListMetaSchema = z.object({
+  page: z.number().int().positive(),
+  per_page: z.number().int().positive(),
+  total: z.number().int().nonnegative(),
+  total_pages: z.number().int().nonnegative(),
+});
+
+const taskListResponseSchema = z.object({
+  tasks: taskDtoListSchema,
+  meta: taskListMetaSchema,
+});
+
+export type TaskListMeta = z.infer<typeof taskListMetaSchema>;
+export type TaskListResponse = z.infer<typeof taskListResponseSchema>;
+
 export const INVALID_TASK_DTO_MESSAGE = "Invalid task API response";
 
 export function parseTaskDto(data: unknown): TaskDto {
@@ -34,6 +49,14 @@ export function parseTaskDto(data: unknown): TaskDto {
 
 export function parseTaskDtos(data: unknown): TaskDto[] {
   const result = taskDtoListSchema.safeParse(data);
+  if (!result.success) {
+    throw new Error(INVALID_TASK_DTO_MESSAGE);
+  }
+  return result.data;
+}
+
+export function parseTaskListResponse(data: unknown): TaskListResponse {
+  const result = taskListResponseSchema.safeParse(data);
   if (!result.success) {
     throw new Error(INVALID_TASK_DTO_MESSAGE);
   }

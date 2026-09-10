@@ -150,7 +150,10 @@ describe("task API fetch errors", () => {
 
   it("fetchTasks appends the list query to the request URL", async () => {
     const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
-      mockResponse(200, []),
+      mockResponse(200, {
+        tasks: [],
+        meta: { page: 1, per_page: 20, total: 0, total_pages: 0 },
+      }),
     );
 
     await fetchTasks({ q: "foo" });
@@ -161,6 +164,44 @@ describe("task API fetch errors", () => {
         cache: "no-store",
       }),
     );
+  });
+
+  it("fetchTasks returns parsed tasks and meta", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      mockResponse(200, {
+        tasks: [
+          {
+            id: 1,
+            title: "買い物",
+            description: null,
+            status: "todo",
+            priority: "medium",
+            due_date: null,
+            tags: null,
+            created_at: "2026-07-14T00:00:00.000Z",
+            updated_at: "2026-07-14T00:00:00.000Z",
+          },
+        ],
+        meta: { page: 2, per_page: 20, total: 21, total_pages: 2 },
+      }),
+    );
+
+    await expect(fetchTasks({ page: 2 })).resolves.toEqual({
+      tasks: [
+        {
+          id: 1,
+          title: "買い物",
+          description: null,
+          status: "todo",
+          priority: "medium",
+          due_date: null,
+          tags: null,
+          created_at: "2026-07-14T00:00:00.000Z",
+          updated_at: "2026-07-14T00:00:00.000Z",
+        },
+      ],
+      meta: { page: 2, per_page: 20, total: 21, total_pages: 2 },
+    });
   });
 });
 

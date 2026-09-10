@@ -25,7 +25,8 @@ export default async function Home({ searchParams }: HomeProps) {
   let unauthorized = false;
 
   try {
-    tasks = tasksFromDto(await fetchTasks(query));
+    const { tasks: taskDtos } = await fetchTasks(query);
+    tasks = tasksFromDto(taskDtos);
   } catch (error) {
     unauthorized = isUnauthorizedError(error);
     listError = readApiClientError(error, "タスクの取得に失敗しました");
