@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   parseTaskListQuery,
+  taskListPageHref,
   taskListQueryString,
 } from "./taskListQuery";
 
@@ -116,5 +117,53 @@ describe("taskListQueryString", () => {
     expect(taskListQueryString(query)).toBe(
       "q=Rails&status=in_progress&priority=low&sort=due_date&direction=desc&page=2",
     );
+  });
+});
+
+describe("taskListPageHref", () => {
+  it("returns / when there are no filters and page is 1", () => {
+    expect(taskListPageHref({}, 1)).toBe("/");
+  });
+
+  it("omits page from the href when the target page is 1", () => {
+    expect(
+      taskListPageHref(
+        {
+          q: "Rails",
+          status: "todo",
+          page: 3,
+        },
+        1,
+      ),
+    ).toBe("/?q=Rails&status=todo");
+  });
+
+  it("keeps filters and sets page when the target page is greater than 1", () => {
+    expect(
+      taskListPageHref(
+        {
+          q: "Rails",
+          status: "todo",
+          priority: "high",
+          sort: "due_date",
+          direction: "asc",
+          page: 1,
+        },
+        2,
+      ),
+    ).toBe(
+      "/?q=Rails&status=todo&priority=high&sort=due_date&direction=asc&page=2",
+    );
+  });
+
+  it("replaces an existing page value with the target page", () => {
+    expect(taskListPageHref({ page: 4, q: "memo" }, 3)).toBe(
+      "/?q=memo&page=3",
+    );
+  });
+
+  it("treats pages below 1 as page 1", () => {
+    expect(taskListPageHref({ q: "Rails", page: 2 }, 0)).toBe("/?q=Rails");
+    expect(taskListPageHref({ q: "Rails", page: 2 }, -1)).toBe("/?q=Rails");
   });
 });
