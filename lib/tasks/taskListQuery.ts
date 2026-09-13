@@ -123,6 +123,20 @@ export function taskListQueryString(query: TaskListQuery): string {
   return taskListQuerySearchParams(query).toString();
 }
 
+export function taskListPageHref(query: TaskListQuery, page: number): string {
+  const targetPage = page < 1 ? 1 : page;
+  const nextQuery: TaskListQuery = { ...query };
+
+  if (targetPage > 1) {
+    nextQuery.page = targetPage;
+  } else {
+    delete nextQuery.page;
+  }
+
+  const qs = taskListQueryString(nextQuery);
+  return qs ? `/?${qs}` : "/";
+}
+
 export function hasTaskListFilters(query: TaskListQuery): boolean {
   return Boolean(query.q || query.status || query.priority);
 }
