@@ -47,14 +47,6 @@ export function parseTaskDto(data: unknown): TaskDto {
   return result.data;
 }
 
-export function parseTaskDtos(data: unknown): TaskDto[] {
-  const result = taskDtoListSchema.safeParse(data);
-  if (!result.success) {
-    throw new Error(INVALID_TASK_DTO_MESSAGE);
-  }
-  return result.data;
-}
-
 export function parseTaskListResponse(data: unknown): TaskListResponse {
   const result = taskListResponseSchema.safeParse(data);
   if (!result.success) {

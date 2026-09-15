@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import {
   INVALID_TASK_DTO_MESSAGE,
   parseTaskDto,
-  parseTaskDtos,
   parseTaskListResponse,
   taskFromDto,
   tasksFromDto,
@@ -67,18 +66,6 @@ describe("parseTaskDto", () => {
 
   it("throws when the API response shape is invalid", () => {
     expect(() => parseTaskDto({ id: "1", title: "買い物" })).toThrow(
-      INVALID_TASK_DTO_MESSAGE,
-    );
-  });
-});
-
-describe("parseTaskDtos", () => {
-  it("returns a validated TaskDto array", () => {
-    expect(parseTaskDtos([sampleDto])).toEqual([sampleDto]);
-  });
-
-  it("throws when any item in the array is invalid", () => {
-    expect(() => parseTaskDtos([sampleDto, { id: 2 }])).toThrow(
       INVALID_TASK_DTO_MESSAGE,
     );
   });
