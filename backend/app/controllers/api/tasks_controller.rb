@@ -1,5 +1,7 @@
 module Api
   class TasksController < ApplicationController
+    PER_PAGE = 20
+
     before_action :authenticate_user!
     before_action :set_task, only: %i[show update destroy]
 
@@ -9,7 +11,21 @@ module Api
       tasks = apply_status_filter(tasks, params[:status])
       tasks = apply_priority_filter(tasks, params[:priority])
       tasks = apply_sort(tasks, params[:sort], params[:direction])
-      render json: tasks
+
+      page = normalize_page(params[:page])
+      total = tasks.count
+      total_pages = total.zero? ? 0 : (total.to_f / PER_PAGE).ceil
+      page_tasks = tasks.limit(PER_PAGE).offset((page - 1) * PER_PAGE)
+
+      render json: {
+        tasks: page_tasks,
+        meta: {
+          page: page,
+          per_page: PER_PAGE,
+          total: total,
+          total_pages: total_pages,
+        },
+      }
     end
 
     def show
@@ -85,6 +101,11 @@ module Api
       direction = raw_direction.to_s.downcase.strip == "asc" ? :asc : :desc
 
       scope.order(key => direction, id: direction)
+    end
+
+    def normalize_page(raw_page)
+      page = raw_page.to_i
+      page < 1 ? 1 : page
     end
 
     def task_params
