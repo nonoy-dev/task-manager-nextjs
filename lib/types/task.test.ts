@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   INVALID_TASK_DTO_MESSAGE,
   parseTaskDto,
-  parseTaskDtos,
+  parseTaskListResponse,
   taskFromDto,
   tasksFromDto,
   type TaskDto,
@@ -71,14 +71,57 @@ describe("parseTaskDto", () => {
   });
 });
 
-describe("parseTaskDtos", () => {
-  it("returns a validated TaskDto array", () => {
-    expect(parseTaskDtos([sampleDto])).toEqual([sampleDto]);
+describe("parseTaskListResponse", () => {
+  const sampleMeta = {
+    page: 1,
+    per_page: 20,
+    total: 1,
+    total_pages: 1,
+  };
+
+  it("returns validated tasks and meta", () => {
+    expect(
+      parseTaskListResponse({
+        tasks: [sampleDto],
+        meta: sampleMeta,
+      }),
+    ).toEqual({
+      tasks: [sampleDto],
+      meta: sampleMeta,
+    });
   });
 
-  it("throws when any item in the array is invalid", () => {
-    expect(() => parseTaskDtos([sampleDto, { id: 2 }])).toThrow(
+  it("accepts an empty tasks list with zero total_pages", () => {
+    expect(
+      parseTaskListResponse({
+        tasks: [],
+        meta: {
+          page: 1,
+          per_page: 20,
+          total: 0,
+          total_pages: 0,
+        },
+      }),
+    ).toEqual({
+      tasks: [],
+      meta: {
+        page: 1,
+        per_page: 20,
+        total: 0,
+        total_pages: 0,
+      },
+    });
+  });
+
+  it("throws when the paginated response shape is invalid", () => {
+    expect(() => parseTaskListResponse([sampleDto])).toThrow(
       INVALID_TASK_DTO_MESSAGE,
     );
+    expect(() =>
+      parseTaskListResponse({
+        tasks: [sampleDto],
+        meta: { page: 1, per_page: 20, total: 1 },
+      }),
+    ).toThrow(INVALID_TASK_DTO_MESSAGE);
   });
 });
