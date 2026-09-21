@@ -14,7 +14,7 @@ seed_tasks = [
     description: "Milk, eggs, and bread",
     status: :todo,
     priority: :medium,
-    due_date: 2.days.from_now,
+    due_date: Time.zone.today + 2,
     tags: "personal,errand"
   },
   {
@@ -22,7 +22,7 @@ seed_tasks = [
     description: "Collect progress updates from the team",
     status: :in_progress,
     priority: :high,
-    due_date: 1.day.from_now,
+    due_date: Time.zone.today + 1,
     tags: "work,report"
   },
   {
@@ -30,7 +30,7 @@ seed_tasks = [
     description: "Reserve annual checkup slot",
     status: :done,
     priority: :low,
-    due_date: 7.days.ago,
+    due_date: Time.zone.today - 7,
     tags: "personal,health"
   }
 ]
