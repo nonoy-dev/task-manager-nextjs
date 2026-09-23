@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { classifyDueDateUrgency } from "./dateUtils";
+import { classifyDueDateUrgency, formatDueDate } from "./dateUtils";
 
 describe("classifyDueDateUrgency", () => {
   beforeEach(() => {
@@ -21,7 +21,6 @@ describe("classifyDueDateUrgency", () => {
 
   it("returns today when due date is today", () => {
     expect(classifyDueDateUrgency("2026-08-20")).toBe("today");
-    expect(classifyDueDateUrgency("2026-08-20T00:00:00+09:00")).toBe("today");
   });
 
   it("returns this_week for 1 to 6 days ahead", () => {
@@ -31,5 +30,15 @@ describe("classifyDueDateUrgency", () => {
 
   it("returns later for 7 or more days ahead", () => {
     expect(classifyDueDateUrgency("2026-08-27")).toBe("later");
+  });
+});
+
+describe("formatDueDate", () => {
+  it("returns null when the due date is missing", () => {
+    expect(formatDueDate(null)).toBeNull();
+  });
+
+  it("formats YYYY-MM-DD as YYYY/M/D", () => {
+    expect(formatDueDate("2026-12-01")).toBe("2026/12/1");
   });
 });

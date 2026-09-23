@@ -6,8 +6,13 @@ export function todayDateString(): string {
   return jstFormatter.format(new Date());
 }
 
-export function dateStringFromIso(iso: string): string {
-  return jstFormatter.format(new Date(iso));
+export function formatDueDate(value: string | null): string | null {
+  if (!value) {
+    return null;
+  }
+
+  const [year, month, day] = value.split("-").map(Number);
+  return `${year}/${month}/${day}`;
 }
 
 function calendarDaysBetween(from: string, to: string): number {
@@ -15,7 +20,7 @@ function calendarDaysBetween(from: string, to: string): number {
   const [toYear, toMonth, toDay] = to.split("-").map(Number);
   const fromUtc = Date.UTC(fromYear, fromMonth - 1, fromDay);
   const toUtc = Date.UTC(toYear, toMonth - 1, toDay);
-  return Math.round((toUtc - fromUtc) / (1000 * 60 * 60 * 24));
+  return (toUtc - fromUtc) / (1000 * 60 * 60 * 24);
 }
 
 export const DUE_DATE_URGENCIES = [
@@ -36,8 +41,7 @@ export function classifyDueDateUrgency(
   }
 
   const today = todayDateString();
-  const due = dateStringFromIso(dueDate);
-  const daysUntilDue = calendarDaysBetween(today, due);
+  const daysUntilDue = calendarDaysBetween(today, dueDate);
 
   if (daysUntilDue < 0) {
     return "overdue";

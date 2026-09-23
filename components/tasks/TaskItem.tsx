@@ -7,6 +7,7 @@ import { readApiClientError } from "@/lib/api/errors";
 import { deleteTask, updateTask } from "@/lib/api/tasks.client";
 import {
   classifyDueDateUrgency,
+  formatDueDate,
   type DueDateUrgency,
 } from "@/lib/tasks/dateUtils";
 import { dueDateUrgencyLabel } from "@/lib/tasks/dueDateUrgencyLabels";
@@ -20,11 +21,6 @@ import type { Task, TaskStatus } from "@/lib/types/task";
 type TaskItemProps = {
   task: Task;
 };
-
-function formatDueDate(iso: string | null): string | null {
-  if (!iso) return null;
-  return new Date(iso).toLocaleDateString("ja-JP");
-}
 
 const DUE_DATE_ROW_CLASS: Record<DueDateUrgency, string> = {
   none: "mt-2 text-sm text-foreground/60",
