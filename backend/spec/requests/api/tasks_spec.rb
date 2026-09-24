@@ -185,13 +185,13 @@ RSpec.describe "Api::Tasks", type: :request do
           title: "Later due",
           status: :todo,
           priority: :low,
-          due_date: Time.zone.parse("2026-12-01"),
+          due_date: Date.new(2026, 12, 1),
         )
         user.tasks.create!(
           title: "Sooner due",
           status: :todo,
           priority: :low,
-          due_date: Time.zone.parse("2026-06-01"),
+          due_date: Date.new(2026, 6, 1),
         )
 
         get api_tasks_path, params: { sort: "due_date", direction: "asc" }
@@ -441,6 +441,24 @@ RSpec.describe "Api::Tasks", type: :request do
         expect(json["priority"]).to eq("medium")
         expect(user.tasks.find(json["id"]).user_id).to eq(user.id)
         expect_task_json_shape(json)
+      end
+
+      it "returns due_date as a calendar date string" do
+        post api_tasks_path,
+             params: {
+               task: {
+                 title: "Has due date",
+                 status: "todo",
+                 priority: "low",
+                 due_date: "2026-12-01",
+               },
+             },
+             as: :json
+
+        expect(response).to have_http_status(:created)
+        json = response.parsed_body
+        expect(json["due_date"]).to eq("2026-12-01")
+        expect(user.tasks.find(json["id"]).due_date).to eq(Date.new(2026, 12, 1))
       end
 
       it "does not assign the task to another user when user_id is sent" do
