@@ -32,7 +32,7 @@ RSpec.describe "Api::Dashboard", type: :request do
     before { login_as(user) }
 
     it "returns overdue and due-today incomplete tasks with meta counts" do
-      travel_to Time.zone.local(2026, 9, 20, 15, 0, 0) do
+      travel_to Time.zone.local(2026, 9, 20) do
         overdue = user.tasks.create!(
           title: "Overdue task",
           status: :todo,
@@ -71,6 +71,89 @@ RSpec.describe "Api::Dashboard", type: :request do
         expect_task_json_shape(json["due_today"].first)
         expect(json["overdue"].first["id"]).to eq(overdue.id)
         expect(json["due_today"].first["id"]).to eq(due_today.id)
+      end
+    end
+
+    it "excludes completed tasks even when their due date is overdue or today" do
+      travel_to Time.zone.local(2026, 9, 20) do
+        user.tasks.create!(
+          title: "Done overdue",
+          status: :done,
+          priority: :high,
+          due_date: Date.new(2026, 9, 19),
+        )
+        user.tasks.create!(
+          title: "Done today",
+          status: :done,
+          priority: :medium,
+          due_date: Date.new(2026, 9, 20),
+        )
+
+        get api_dashboard_path
+
+        expect(response).to have_http_status(:ok)
+        json = response.parsed_body
+        expect(json["overdue"]).to eq([])
+        expect(json["due_today"]).to eq([])
+        expect(json["meta"]).to eq(
+          "overdue" => 0,
+          "due_today" => 0,
+        )
+      end
+    end
+
+    it "does not include other users tasks" do
+      travel_to Time.zone.local(2026, 9, 20) do
+        other = User.create!(
+          email: "other-dashboard@example.com",
+          password: "password",
+          password_confirmation: "password",
+        )
+        other.tasks.create!(
+          title: "Other overdue",
+          status: :todo,
+          priority: :high,
+          due_date: Date.new(2026, 9, 19),
+        )
+        other.tasks.create!(
+          title: "Other due today",
+          status: :todo,
+          priority: :medium,
+          due_date: Date.new(2026, 9, 20),
+        )
+        mine = user.tasks.create!(
+          title: "Mine overdue",
+          status: :todo,
+          priority: :low,
+          due_date: Date.new(2026, 9, 19),
+        )
+
+        get api_dashboard_path
+
+        expect(response).to have_http_status(:ok)
+        json = response.parsed_body
+        expect(json["overdue"].map { |row| row["title"] }).to eq(["Mine overdue"])
+        expect(json["due_today"]).to eq([])
+        expect(json["meta"]).to eq(
+          "overdue" => 1,
+          "due_today" => 0,
+        )
+        expect(json["overdue"].first["id"]).to eq(mine.id)
+      end
+    end
+
+    it "returns empty arrays and zero meta when there are no attention tasks" do
+      travel_to Time.zone.local(2026, 9, 20) do
+        get api_dashboard_path
+
+        expect(response).to have_http_status(:ok)
+        json = response.parsed_body
+        expect(json["overdue"]).to eq([])
+        expect(json["due_today"]).to eq([])
+        expect(json["meta"]).to eq(
+          "overdue" => 0,
+          "due_today" => 0,
+        )
       end
     end
   end
