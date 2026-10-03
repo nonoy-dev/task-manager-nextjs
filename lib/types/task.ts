@@ -55,6 +55,28 @@ export function parseTaskListResponse(data: unknown): TaskListResponse {
   return result.data;
 }
 
+const dashboardMetaSchema = z.object({
+  overdue: z.number().int().nonnegative(),
+  due_today: z.number().int().nonnegative(),
+});
+
+const dashboardResponseSchema = z.object({
+  overdue: taskDtoListSchema,
+  due_today: taskDtoListSchema,
+  meta: dashboardMetaSchema,
+});
+
+export type DashboardMeta = z.infer<typeof dashboardMetaSchema>;
+export type DashboardResponse = z.infer<typeof dashboardResponseSchema>;
+
+export function parseDashboardResponse(data: unknown): DashboardResponse {
+  const result = dashboardResponseSchema.safeParse(data);
+  if (!result.success) {
+    throw new Error(INVALID_TASK_DTO_MESSAGE);
+  }
+  return result.data;
+}
+
 export type Task = {
   id: number;
   title: string;
