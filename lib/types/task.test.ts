@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   INVALID_TASK_DTO_MESSAGE,
+  parseDashboardResponse,
   parseTaskDto,
   parseTaskListResponse,
   taskFromDto,
@@ -121,6 +122,49 @@ describe("parseTaskListResponse", () => {
       parseTaskListResponse({
         tasks: [sampleDto],
         meta: { page: 1, per_page: 20, total: 1 },
+      }),
+    ).toThrow(INVALID_TASK_DTO_MESSAGE);
+  });
+});
+
+describe("parseDashboardResponse", () => {
+  it("returns validated overdue, due_today, and meta", () => {
+    expect(
+      parseDashboardResponse({
+        overdue: [sampleDto],
+        due_today: [],
+        meta: { overdue: 1, due_today: 0 },
+      }),
+    ).toEqual({
+      overdue: [sampleDto],
+      due_today: [],
+      meta: { overdue: 1, due_today: 0 },
+    });
+  });
+
+  it("accepts empty attention lists with zero meta", () => {
+    expect(
+      parseDashboardResponse({
+        overdue: [],
+        due_today: [],
+        meta: { overdue: 0, due_today: 0 },
+      }),
+    ).toEqual({
+      overdue: [],
+      due_today: [],
+      meta: { overdue: 0, due_today: 0 },
+    });
+  });
+
+  it("throws when the dashboard response shape is invalid", () => {
+    expect(() => parseDashboardResponse({ overdue: [] })).toThrow(
+      INVALID_TASK_DTO_MESSAGE,
+    );
+    expect(() =>
+      parseDashboardResponse({
+        overdue: [sampleDto],
+        due_today: [],
+        meta: { overdue: 1 },
       }),
     ).toThrow(INVALID_TASK_DTO_MESSAGE);
   });
