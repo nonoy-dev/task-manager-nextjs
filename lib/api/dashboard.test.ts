@@ -12,7 +12,7 @@ import {
   NETWORK_ERROR_MESSAGE,
   UNAUTHORIZED_MESSAGE,
 } from "./errors";
-import { fetchDashboard } from "@/lib/api/dashboard.server";
+import { fetchDashboard } from "@/lib/api/dashboard";
 import { INVALID_TASK_DTO_MESSAGE } from "@/lib/types/task";
 
 function mockResponse(status: number, body?: unknown): Response {
