@@ -10,6 +10,7 @@ Rails.application.routes.draw do
   namespace :api do
     get :health, to: "health#show"
     resource :session, only: %i[create show destroy]
+    resource :dashboard, only: :show
     resources :tasks, only: %i[index show create update destroy]
   end
 end
