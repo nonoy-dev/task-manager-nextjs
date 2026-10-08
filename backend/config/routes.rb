@@ -11,6 +11,7 @@ Rails.application.routes.draw do
     get :health, to: "health#show"
     resource :session, only: %i[create show destroy]
     resource :dashboard, only: :show
+    resources :projects, only: %i[index create]
     resources :tasks, only: %i[index show create update destroy]
   end
 end
