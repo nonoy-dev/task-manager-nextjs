@@ -2,7 +2,8 @@
 
 # Keys expected by the React client's TaskDto (snake_case JSON from Rails).
 TASK_JSON_KEYS = %w[
-  id title description status priority due_date tags user_id created_at updated_at
+  id title description status priority due_date tags user_id project_id project
+  created_at updated_at
 ].freeze
 
 module TaskApiJson
