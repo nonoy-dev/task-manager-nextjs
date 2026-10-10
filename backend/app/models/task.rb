@@ -8,14 +8,21 @@ class Task < ApplicationRecord
   validates :title, presence: true, length: { maximum: 50 }
   validates :description, length: { maximum: 300 }
   validates :tags, length: { maximum: 50 }
-  validate :project_belongs_to_same_user
+  validate :project_must_belong_to_same_user
+
+  def as_json(options = nil)
+    super(options).merge(
+      "project" => project && { "id" => project.id, "name" => project.name },
+    )
+  end
 
   private
 
-  def project_belongs_to_same_user
-    return if project.blank?
-    return if project.user_id == user_id
+  def project_must_belong_to_same_user
+    return if project_id.blank?
+    return if Project.exists?(id: project_id, user_id: user_id)
 
-    errors.add(:project, "must belong to the same user")
+    errors.add(:project_id, "is invalid")
   end
 end
+

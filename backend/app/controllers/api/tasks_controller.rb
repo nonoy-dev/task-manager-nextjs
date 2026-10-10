@@ -15,7 +15,7 @@ module Api
       page = normalize_page(params[:page])
       total = tasks.count
       total_pages = total.zero? ? 0 : (total.to_f / PER_PAGE).ceil
-      page_tasks = tasks.limit(PER_PAGE).offset((page - 1) * PER_PAGE)
+      page_tasks = tasks.includes(:project).limit(PER_PAGE).offset((page - 1) * PER_PAGE)
 
       render json: {
         tasks: page_tasks,
@@ -58,7 +58,7 @@ module Api
     private
 
     def set_task
-      @task = current_user_tasks.find(params[:id])
+      @task = current_user_tasks.includes(:project).find(params[:id])
     rescue ActiveRecord::RecordNotFound
       render json: { error: "Task not found" }, status: :not_found
     end
@@ -109,7 +109,15 @@ module Api
     end
 
     def task_params
-      params.require(:task).permit(:title, :description, :status, :priority, :due_date, :tags)
+      params.require(:task).permit(
+        :title,
+        :description,
+        :status,
+        :priority,
+        :due_date,
+        :tags,
+        :project_id,
+      )
     end
   end
 end

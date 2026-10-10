@@ -557,6 +557,69 @@ RSpec.describe "Api::Tasks", type: :request do
         }.to change { user.tasks.count }.by(1)
         expect(response).to have_http_status(:created)
       end
+
+      it "creates a task with the current user's project_id" do
+        project = user.projects.create!(name: "Alpha")
+
+        post api_tasks_path,
+             params: {
+               task: {
+                 title: "With project",
+                 status: "todo",
+                 priority: "low",
+                 project_id: project.id,
+               },
+             },
+             as: :json
+
+        expect(response).to have_http_status(:created)
+        json = response.parsed_body
+        expect(json["project_id"]).to eq(project.id)
+        expect(json["project"]).to eq("id" => project.id, "name" => "Alpha")
+        expect(user.tasks.find(json["id"]).project_id).to eq(project.id)
+        expect_task_json_shape(json)
+      end
+
+      it "returns null project fields when project_id is omitted" do
+        post api_tasks_path,
+             params: {
+               task: {
+                 title: "No project",
+                 status: "todo",
+                 priority: "low",
+               },
+             },
+             as: :json
+
+        expect(response).to have_http_status(:created)
+        json = response.parsed_body
+        expect(json["project_id"]).to be_nil
+        expect(json["project"]).to be_nil
+        expect_task_json_shape(json)
+      end
+
+      it "returns 422 when project_id belongs to another user" do
+        other = User.create!(
+          email: "other-project-create@example.com",
+          password: "password",
+          password_confirmation: "password",
+        )
+        other_project = other.projects.create!(name: "Other")
+
+        expect {
+          post api_tasks_path,
+               params: {
+                 task: {
+                   title: "Bad project",
+                   project_id: other_project.id,
+                 },
+               },
+               as: :json
+        }.not_to change(Task, :count)
+
+        expect(response).to have_http_status(:unprocessable_content)
+        expect(response.parsed_body["errors"]).to have_key("project_id")
+      end
     end
 
     describe "PATCH /api/tasks/:id" do
@@ -620,6 +683,49 @@ RSpec.describe "Api::Tasks", type: :request do
         expect(response).to have_http_status(:not_found)
         expect(response.parsed_body["error"]).to eq("Task not found")
         expect(other_task.reload.status).to eq("todo")
+      end
+
+      it "assigns and clears project_id" do
+        project = user.projects.create!(name: "Beta")
+        task = user.tasks.create!(title: "Patch project", status: :todo, priority: :low)
+
+        patch api_task_path(task),
+              params: { task: { project_id: project.id } },
+              as: :json
+
+        expect(response).to have_http_status(:ok)
+        json = response.parsed_body
+        expect(json["project_id"]).to eq(project.id)
+        expect(json["project"]).to eq("id" => project.id, "name" => "Beta")
+        expect(task.reload.project_id).to eq(project.id)
+
+        patch api_task_path(task),
+              params: { task: { project_id: nil } },
+              as: :json
+
+        expect(response).to have_http_status(:ok)
+        cleared = response.parsed_body
+        expect(cleared["project_id"]).to be_nil
+        expect(cleared["project"]).to be_nil
+        expect(task.reload.project_id).to be_nil
+      end
+
+      it "returns 422 when project_id belongs to another user" do
+        other = User.create!(
+          email: "other-project-update@example.com",
+          password: "password",
+          password_confirmation: "password",
+        )
+        other_project = other.projects.create!(name: "Other")
+        task = user.tasks.create!(title: "Keep project", status: :todo, priority: :low)
+
+        patch api_task_path(task),
+              params: { task: { project_id: other_project.id } },
+              as: :json
+
+        expect(response).to have_http_status(:unprocessable_content)
+        expect(response.parsed_body["errors"]).to have_key("project_id")
+        expect(task.reload.project_id).to be_nil
       end
     end
   end
