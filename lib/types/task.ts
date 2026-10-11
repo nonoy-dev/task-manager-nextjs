@@ -6,6 +6,15 @@ export const taskPrioritySchema = z.enum(["low", "medium", "high"]);
 export type TaskStatus = z.infer<typeof taskStatusSchema>;
 export type TaskPriority = z.infer<typeof taskPrioritySchema>;
 
+export const taskProjectSchema = z
+  .object({
+    id: z.number(),
+    name: z.string(),
+  })
+  .nullable();
+
+export type TaskProject = z.infer<typeof taskProjectSchema>;
+
 const taskDtoSchema = z.object({
   id: z.number(),
   title: z.string(),
@@ -14,6 +23,8 @@ const taskDtoSchema = z.object({
   priority: taskPrioritySchema,
   due_date: z.string().nullable(),
   tags: z.string().nullable(),
+  project_id: z.number().nullable(),
+  project: taskProjectSchema,
   created_at: z.string(),
   updated_at: z.string(),
 });
@@ -85,6 +96,8 @@ export type Task = {
   priority: TaskPriority;
   dueDate: string | null;
   tagList: string[];
+  projectId: number | null;
+  project: TaskProject;
   createdAt: string;
   updatedAt: string;
 };
@@ -106,6 +119,8 @@ export function taskFromDto(dto: TaskDto): Task {
     priority: dto.priority,
     dueDate: dto.due_date,
     tagList: parseTagList(dto.tags),
+    projectId: dto.project_id,
+    project: dto.project,
     createdAt: dto.created_at,
     updatedAt: dto.updated_at,
   };
