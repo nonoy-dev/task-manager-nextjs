@@ -34,6 +34,8 @@ const sampleTask: Task = {
   priority: "medium",
   dueDate: null,
   tagList: [],
+  projectId: null,
+  project: null,
   createdAt: "2026-07-14T00:00:00.000Z",
   updatedAt: "2026-07-14T00:00:00.000Z",
 };
