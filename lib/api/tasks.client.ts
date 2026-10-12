@@ -18,6 +18,7 @@ export type TaskMutationInput = {
   priority: TaskPriority;
   dueDate: string;
   tags: string;
+  projectId: string;
 };
 
 export const TASK_NOT_FOUND_MESSAGE = "Task not found";
@@ -49,6 +50,8 @@ function tasksUrl(path = ""): string {
 }
 
 export function taskMutationBody(input: TaskMutationInput) {
+  const projectId = input.projectId.trim();
+
   return {
     task: {
       title: input.title.trim(),
@@ -57,6 +60,7 @@ export function taskMutationBody(input: TaskMutationInput) {
       priority: input.priority,
       due_date: input.dueDate.trim() || null,
       tags: input.tags.trim() || null,
+      project_id: projectId === "" ? null : Number(projectId),
     },
   };
 }

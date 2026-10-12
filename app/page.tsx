@@ -7,12 +7,14 @@ import {
   isUnauthorizedError,
   readApiClientError,
 } from "@/lib/api/errors";
+import { fetchProjects } from "@/lib/api/projects";
 import { fetchTasks } from "@/lib/api/tasks.server";
 import {
   hasTaskListFilters,
   parseTaskListQuery,
   type TaskListSearchParams,
 } from "@/lib/tasks/taskListQuery";
+import { projectsFromDto } from "@/lib/types/project";
 import {
   type Task,
   type TaskListMeta,
@@ -29,6 +31,7 @@ export default async function Home({ searchParams }: HomeProps) {
   let meta: TaskListMeta | null = null;
   let listError: string | null = null;
   let unauthorized = false;
+  let projects: ReturnType<typeof projectsFromDto> = [];
 
   try {
     const response = await fetchTasks(query);
@@ -39,6 +42,14 @@ export default async function Home({ searchParams }: HomeProps) {
     listError = readApiClientError(error, "タスクの取得に失敗しました");
   }
 
+  if (!unauthorized) {
+    try {
+      projects = projectsFromDto(await fetchProjects());
+    } catch {
+      projects = [];
+    }
+  }
+
   return (
     <main className="p-8">
       <h1 className="text-2xl font-semibold">タスク一覧</h1>
@@ -46,7 +57,7 @@ export default async function Home({ searchParams }: HomeProps) {
         <>
           <TaskFilterForm query={query} />
           <div className="mt-4">
-            <TaskCreateForm />
+            <TaskCreateForm projects={projects} />
           </div>
         </>
       )}

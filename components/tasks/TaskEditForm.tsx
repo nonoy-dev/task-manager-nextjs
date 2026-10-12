@@ -15,6 +15,7 @@ import {
   isTaskFieldValidationError,
   updateTask,
 } from "@/lib/api/tasks.client";
+import { projectSelectOptions } from "@/lib/tasks/projectSelectOptions";
 import {
   TASK_PRIORITY_OPTIONS,
   TASK_STATUS_OPTIONS,
@@ -33,13 +34,15 @@ import type { Task } from "@/lib/types/task";
 
 type TaskEditFormProps = {
   task: Task;
+  projects?: readonly { id: number; name: string }[];
 };
 
-export function TaskEditForm({ task }: TaskEditFormProps) {
+export function TaskEditForm({ task, projects = [] }: TaskEditFormProps) {
   const router = useRouter();
   const [values, setValues] = useState<TaskFormValues>(() =>
     valuesFromTask(task),
   );
+  const projectOptions = projectSelectOptions(projects);
   const [errors, setErrors] = useState<TaskFormErrors>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -129,6 +132,17 @@ export function TaskEditForm({ task }: TaskEditFormProps) {
           onChange={(dueDate) => {
             setValues((prev) => ({ ...prev, dueDate }));
             setErrors((prev) => ({ ...prev, dueDate: undefined }));
+          }}
+        />
+
+        <FormSelect
+          label="プロジェクト"
+          value={values.projectId}
+          options={projectOptions}
+          error={errors.projectId}
+          onChange={(projectId) => {
+            setValues((prev) => ({ ...prev, projectId }));
+            setErrors((prev) => ({ ...prev, projectId: undefined }));
           }}
         />
 

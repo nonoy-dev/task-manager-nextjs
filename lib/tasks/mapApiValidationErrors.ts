@@ -11,6 +11,7 @@ const FIELD_KEY_MAP: Record<string, keyof TaskFormErrors> = {
   title: "title",
   description: "description",
   tags: "tags",
+  project_id: "projectId",
 };
 
 function messageForField(
@@ -23,6 +24,10 @@ function messageForField(
         return "タイトルは必須です";
       }
       continue;
+    }
+
+    if (message === "is invalid" && field === "projectId") {
+      return "プロジェクトの指定が正しくありません";
     }
 
     const tooLongMatch = message.match(
