@@ -14,6 +14,7 @@ const validValues: TaskFormValues = {
   priority: "medium",
   dueDate: "2026-06-20",
   tags: "work",
+  projectId: "",
 };
 
 describe("validateFormValues", () => {

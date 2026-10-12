@@ -43,6 +43,16 @@ describe("mapApiValidationErrors", () => {
     });
   });
 
+  it("maps invalid project_id errors", () => {
+    expect(
+      mapApiValidationErrors({
+        project_id: ["is invalid"],
+      }),
+    ).toEqual({
+      projectId: "プロジェクトの指定が正しくありません",
+    });
+  });
+
   it("ignores unknown attributes and unmappable messages", () => {
     expect(
       mapApiValidationErrors({
@@ -53,3 +63,4 @@ describe("mapApiValidationErrors", () => {
     ).toEqual({});
   });
 });
+

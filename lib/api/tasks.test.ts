@@ -27,6 +27,7 @@ const sampleInput = {
   priority: "medium" as const,
   dueDate: "",
   tags: "",
+  projectId: "",
 };
 
 function mockResponse(status: number, body?: unknown): Response {
@@ -223,6 +224,7 @@ describe("taskMutationBody", () => {
         priority: "medium",
         dueDate: "2026-06-20",
         tags: "work,urgent",
+        projectId: "3",
       }),
     ).toEqual({
       task: {
@@ -232,6 +234,7 @@ describe("taskMutationBody", () => {
         priority: "medium",
         due_date: "2026-06-20",
         tags: "work,urgent",
+        project_id: 3,
       },
     });
   });
@@ -245,6 +248,7 @@ describe("taskMutationBody", () => {
         priority: "low",
         dueDate: "",
         tags: "",
+        projectId: "",
       }),
     ).toEqual({
       task: {
@@ -254,6 +258,7 @@ describe("taskMutationBody", () => {
         priority: "low",
         due_date: null,
         tags: null,
+        project_id: null,
       },
     });
   });
