@@ -142,6 +142,66 @@ RSpec.describe "Api::Tasks", type: :request do
         expect(json.first["priority"]).to eq("high")
       end
 
+      it "filters by project when project param is present" do
+        alpha = user.projects.create!(name: "Alpha")
+        beta = user.projects.create!(name: "Beta")
+        user.tasks.create!(title: "Alpha task", status: :todo, priority: :low, project: alpha)
+        user.tasks.create!(title: "Beta task", status: :todo, priority: :low, project: beta)
+        user.tasks.create!(title: "No project", status: :todo, priority: :low)
+
+        get api_tasks_path, params: { project: alpha.id }
+
+        expect(response).to have_http_status(:ok)
+        json = response.parsed_body["tasks"]
+        expect(json.size).to eq(1)
+        expect(json.first["title"]).to eq("Alpha task")
+        expect(json.first["project_id"]).to eq(alpha.id)
+        expect(json.first["project"]).to eq("id" => alpha.id, "name" => "Alpha")
+      end
+
+      it "returns empty list when project belongs to another user" do
+        other = User.create!(
+          email: "other-project-filter@example.com",
+          password: "password",
+          password_confirmation: "password",
+        )
+        other_project = other.projects.create!(name: "Other")
+        user.tasks.create!(title: "Mine", status: :todo, priority: :low)
+
+        get api_tasks_path, params: { project: other_project.id }
+
+        expect(response).to have_http_status(:ok)
+        expect(response.parsed_body["tasks"]).to eq([])
+      end
+
+      it "ignores invalid project param" do
+        user.tasks.create!(title: "One", status: :todo, priority: :low)
+        user.tasks.create!(title: "Two", status: :todo, priority: :low)
+
+        get api_tasks_path, params: { project: "not-a-number" }
+
+        expect(response).to have_http_status(:ok)
+        expect(response.parsed_body["tasks"].size).to eq(2)
+      end
+
+      it "includes nested project on list items" do
+        project = user.projects.create!(name: "Work")
+        user.tasks.create!(title: "With project", status: :todo, priority: :low, project: project)
+        user.tasks.create!(title: "Without project", status: :todo, priority: :low)
+
+        get api_tasks_path
+
+        expect(response).to have_http_status(:ok)
+        by_title = response.parsed_body["tasks"].index_by { |row| row["title"] }
+        expect(by_title["With project"]["project"]).to eq(
+          "id" => project.id,
+          "name" => "Work",
+        )
+        expect(by_title["Without project"]["project"]).to be_nil
+        expect_task_json_shape(by_title["With project"])
+        expect_task_json_shape(by_title["Without project"])
+      end
+
       it "ignores invalid status param" do
         user.tasks.create!(title: "Todo A", status: :todo, priority: :low)
         user.tasks.create!(title: "Done B", status: :done, priority: :low)

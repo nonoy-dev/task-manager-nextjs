@@ -119,6 +119,11 @@ export function TaskItem({ task }: TaskItemProps) {
         <span className="rounded-full bg-foreground/5 px-2 py-0.5 text-xs text-foreground/70">
           優先度: {taskPriorityLabel(task.priority)}
         </span>
+        {task.project ? (
+          <span className="rounded-full bg-foreground/5 px-2 py-0.5 text-xs text-foreground/70">
+            {task.project.name}
+          </span>
+        ) : null}
       </div>
       <p className="mt-2 text-sm text-foreground/70">
         {task.description ?? "説明はありません。"}

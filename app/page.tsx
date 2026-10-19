@@ -55,7 +55,7 @@ export default async function Home({ searchParams }: HomeProps) {
       <h1 className="text-2xl font-semibold">タスク一覧</h1>
       {!unauthorized && (
         <>
-          <TaskFilterForm query={query} />
+          <TaskFilterForm query={query} projects={projects} />
           <div className="mt-4">
             <TaskCreateForm projects={projects} />
           </div>

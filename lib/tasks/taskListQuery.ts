@@ -15,6 +15,7 @@ export type TaskListQuery = {
   q?: string;
   status?: TaskStatus;
   priority?: TaskPriority;
+  project?: number;
   sort?: TaskListSort;
   direction?: TaskListDirection;
   page?: number;
@@ -24,6 +25,7 @@ export type TaskListSearchParams = {
   q?: string | string[];
   status?: string | string[];
   priority?: string | string[];
+  project?: string | string[];
   sort?: string | string[];
   direction?: string | string[];
   page?: string | string[];
@@ -33,6 +35,7 @@ const QUERY_KEY_ORDER = [
   "q",
   "status",
   "priority",
+  "project",
   "sort",
   "direction",
 ] as const;
@@ -60,6 +63,19 @@ function normalizePage(rawPage: string): number {
   return page;
 }
 
+function normalizeProjectId(rawProject: string): number | undefined {
+  if (!/^\d+$/.test(rawProject)) {
+    return undefined;
+  }
+
+  const projectId = Number.parseInt(rawProject, 10);
+  if (!Number.isFinite(projectId) || projectId < 1) {
+    return undefined;
+  }
+
+  return projectId;
+}
+
 export function parseTaskListQuery(
   params: TaskListSearchParams = {},
 ): TaskListQuery {
@@ -80,6 +96,11 @@ export function parseTaskListQuery(
   );
   if (priority.success) {
     query.priority = priority.data;
+  }
+
+  const project = normalizeProjectId(firstParam(params.project).trim());
+  if (project != null) {
+    query.project = project;
   }
 
   const sort = firstParam(params.sort).trim();
@@ -108,7 +129,7 @@ export function taskListQuerySearchParams(
   for (const key of QUERY_KEY_ORDER) {
     const value = query[key];
     if (value) {
-      search.set(key, value);
+      search.set(key, String(value));
     }
   }
 
@@ -138,5 +159,5 @@ export function taskListPageHref(query: TaskListQuery, page: number): string {
 }
 
 export function hasTaskListFilters(query: TaskListQuery): boolean {
-  return Boolean(query.q || query.status || query.priority);
+  return Boolean(query.q || query.status || query.priority || query.project);
 }

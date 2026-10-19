@@ -161,10 +161,10 @@ describe("task API fetch errors", () => {
       }),
     );
 
-    await fetchTasks({ q: "foo" });
+    await fetchTasks({ q: "foo", project: 3 });
 
     expect(fetchMock).toHaveBeenCalledWith(
-      expect.stringContaining("/api/tasks?q=foo"),
+      expect.stringContaining("/api/tasks?q=foo&project=3"),
       expect.objectContaining({
         cache: "no-store",
       }),
