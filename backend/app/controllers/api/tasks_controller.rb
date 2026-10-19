@@ -10,6 +10,7 @@ module Api
       tasks = apply_title_description_search(tasks, params[:q])
       tasks = apply_status_filter(tasks, params[:status])
       tasks = apply_priority_filter(tasks, params[:priority])
+      tasks = apply_project_filter(tasks, params[:project])
       tasks = apply_sort(tasks, params[:sort], params[:direction])
 
       page = normalize_page(params[:page])
@@ -89,6 +90,17 @@ module Api
       return scope unless Task.priorities.key?(p)
 
       scope.where(priority: p)
+    end
+
+    def apply_project_filter(scope, raw_project)
+      raw = raw_project.to_s.strip
+      return scope if raw.blank?
+      return scope unless raw.match?(/\A\d+\z/)
+
+      project_id = raw.to_i
+      return scope.none unless current_user_projects.exists?(id: project_id)
+
+      scope.where(project_id: project_id)
     end
 
     SORTABLE_COLUMNS = %w[created_at due_date].freeze

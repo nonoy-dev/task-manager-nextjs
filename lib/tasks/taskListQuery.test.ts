@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  hasTaskListFilters,
   parseTaskListQuery,
   taskListPageHref,
   taskListQueryString,
@@ -25,6 +26,7 @@ describe("parseTaskListQuery", () => {
         q: "  会議  ",
         status: "todo",
         priority: "high",
+        project: "12",
         sort: "due_date",
         direction: "ASC",
       }),
@@ -32,6 +34,7 @@ describe("parseTaskListQuery", () => {
       q: "会議",
       status: "todo",
       priority: "high",
+      project: 12,
       sort: "due_date",
       direction: "asc",
     });
@@ -49,16 +52,26 @@ describe("parseTaskListQuery", () => {
     ).toEqual({ q: "ok" });
   });
 
+  it("drops invalid project ids", () => {
+    expect(parseTaskListQuery({ project: "0" })).toEqual({});
+    expect(parseTaskListQuery({ project: "-1" })).toEqual({});
+    expect(parseTaskListQuery({ project: "abc" })).toEqual({});
+    expect(parseTaskListQuery({ project: "1.5" })).toEqual({});
+    expect(parseTaskListQuery({ project: "  " })).toEqual({});
+  });
+
   it("uses the first value when a param is an array", () => {
     expect(
       parseTaskListQuery({
         q: ["alpha", "beta"],
         status: ["done", "todo"],
+        project: ["7", "2"],
         page: ["3", "1"],
       }),
     ).toEqual({
       q: "alpha",
       status: "done",
+      project: 7,
       page: 3,
     });
   });
@@ -104,19 +117,37 @@ describe("taskListQueryString", () => {
     ).toBe("q=Rails&status=todo&page=3");
   });
 
+  it("includes project in stable key order", () => {
+    expect(
+      taskListQueryString({
+        project: 5,
+        q: "Rails",
+        status: "todo",
+      }),
+    ).toBe("q=Rails&status=todo&project=5");
+  });
+
   it("round-trips through parseTaskListQuery", () => {
     const query = parseTaskListQuery({
       q: "Rails",
       status: "in_progress",
       priority: "low",
+      project: "9",
       sort: "due_date",
       direction: "desc",
       page: "2",
     });
 
     expect(taskListQueryString(query)).toBe(
-      "q=Rails&status=in_progress&priority=low&sort=due_date&direction=desc&page=2",
+      "q=Rails&status=in_progress&priority=low&project=9&sort=due_date&direction=desc&page=2",
     );
+  });
+});
+
+describe("hasTaskListFilters", () => {
+  it("is true when project filter is set", () => {
+    expect(hasTaskListFilters({ project: 3 })).toBe(true);
+    expect(hasTaskListFilters({})).toBe(false);
   });
 });
 
@@ -145,6 +176,7 @@ describe("taskListPageHref", () => {
           q: "Rails",
           status: "todo",
           priority: "high",
+          project: 4,
           sort: "due_date",
           direction: "asc",
           page: 1,
@@ -152,7 +184,7 @@ describe("taskListPageHref", () => {
         2,
       ),
     ).toBe(
-      "/?q=Rails&status=todo&priority=high&sort=due_date&direction=asc&page=2",
+      "/?q=Rails&status=todo&priority=high&project=4&sort=due_date&direction=asc&page=2",
     );
   });
 
