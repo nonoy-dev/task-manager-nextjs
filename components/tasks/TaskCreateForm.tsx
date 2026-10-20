@@ -14,6 +14,7 @@ import {
   createTask,
   isTaskFieldValidationError,
 } from "@/lib/api/tasks.client";
+import { projectSelectOptions } from "@/lib/tasks/projectSelectOptions";
 import {
   TASK_PRIORITY_OPTIONS,
   TASK_STATUS_OPTIONS,
@@ -35,11 +36,17 @@ const initialValues: TaskFormValues = {
   priority: "medium",
   dueDate: "",
   tags: "",
+  projectId: "",
 };
 
-export function TaskCreateForm() {
+type TaskCreateFormProps = {
+  projects?: readonly { id: number; name: string }[];
+};
+
+export function TaskCreateForm({ projects = [] }: TaskCreateFormProps) {
   const router = useRouter();
   const [values, setValues] = useState<TaskFormValues>(initialValues);
+  const projectOptions = projectSelectOptions(projects);
   const [errors, setErrors] = useState<TaskFormErrors>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -132,6 +139,17 @@ export function TaskCreateForm() {
           onChange={(dueDate) => {
             setValues((prev) => ({ ...prev, dueDate }));
             setErrors((prev) => ({ ...prev, dueDate: undefined }));
+          }}
+        />
+
+        <FormSelect
+          label="プロジェクト"
+          value={values.projectId}
+          options={projectOptions}
+          error={errors.projectId}
+          onChange={(projectId) => {
+            setValues((prev) => ({ ...prev, projectId }));
+            setErrors((prev) => ({ ...prev, projectId: undefined }));
           }}
         />
 

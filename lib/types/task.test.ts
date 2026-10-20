@@ -17,6 +17,8 @@ const sampleDto: TaskDto = {
   priority: "medium",
   due_date: "2026-06-16",
   tags: "work, urgent",
+  project_id: null,
+  project: null,
   created_at: "2026-01-01T00:00:00.000Z",
   updated_at: "2026-01-02T00:00:00.000Z",
 };
@@ -31,8 +33,23 @@ describe("taskFromDto", () => {
       priority: "medium",
       dueDate: "2026-06-16",
       tagList: ["work", "urgent"],
+      projectId: null,
+      project: null,
       createdAt: "2026-01-01T00:00:00.000Z",
       updatedAt: "2026-01-02T00:00:00.000Z",
+    });
+  });
+
+  it("maps nested project fields", () => {
+    const dto: TaskDto = {
+      ...sampleDto,
+      project_id: 3,
+      project: { id: 3, name: "Alpha" },
+    };
+
+    expect(taskFromDto(dto)).toMatchObject({
+      projectId: 3,
+      project: { id: 3, name: "Alpha" },
     });
   });
 });

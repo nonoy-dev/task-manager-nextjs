@@ -11,6 +11,10 @@ class ApplicationController < ActionController::API
     current_user.tasks
   end
 
+  def current_user_projects
+    current_user.projects
+  end
+
   def authenticate_user!
     return if current_user
 

@@ -14,6 +14,7 @@ import {
 
 type TaskFilterFormProps = {
   query: TaskListQuery;
+  projects?: readonly { id: number; name: string }[];
 };
 
 const SORT_LABELS: Record<TaskListSort, string> = {
@@ -26,10 +27,13 @@ const DIRECTION_LABELS: Record<TaskListDirection, string> = {
   desc: "降順",
 };
 
-export function TaskFilterForm({ query }: TaskFilterFormProps) {
+export function TaskFilterForm({
+  query,
+  projects = [],
+}: TaskFilterFormProps) {
   return (
     <form method="get" action="/" className="mt-4 flex flex-col gap-3">
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <label>
           <span className={labelClass}>検索</span>
           <input
@@ -68,6 +72,22 @@ export function TaskFilterForm({ query }: TaskFilterFormProps) {
             {TASK_PRIORITY_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label>
+          <span className={labelClass}>プロジェクト</span>
+          <select
+            name="project"
+            defaultValue={query.project != null ? String(query.project) : ""}
+            className={inputClass}
+          >
+            <option value="">すべて</option>
+            {projects.map((project) => (
+              <option key={project.id} value={project.id}>
+                {project.name}
               </option>
             ))}
           </select>
