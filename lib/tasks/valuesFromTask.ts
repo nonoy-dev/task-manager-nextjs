@@ -9,5 +9,6 @@ export function valuesFromTask(task: Task): TaskMutationInput {
     priority: task.priority,
     dueDate: task.dueDate ? task.dueDate.slice(0, 10) : "",
     tags: task.tagList.join(","),
+    projectId: task.projectId != null ? String(task.projectId) : "",
   };
 }

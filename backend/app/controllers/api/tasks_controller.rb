@@ -10,12 +10,13 @@ module Api
       tasks = apply_title_description_search(tasks, params[:q])
       tasks = apply_status_filter(tasks, params[:status])
       tasks = apply_priority_filter(tasks, params[:priority])
+      tasks = apply_project_filter(tasks, params[:project])
       tasks = apply_sort(tasks, params[:sort], params[:direction])
 
       page = normalize_page(params[:page])
       total = tasks.count
       total_pages = total.zero? ? 0 : (total.to_f / PER_PAGE).ceil
-      page_tasks = tasks.limit(PER_PAGE).offset((page - 1) * PER_PAGE)
+      page_tasks = tasks.includes(:project).limit(PER_PAGE).offset((page - 1) * PER_PAGE)
 
       render json: {
         tasks: page_tasks,
@@ -58,7 +59,7 @@ module Api
     private
 
     def set_task
-      @task = current_user_tasks.find(params[:id])
+      @task = current_user_tasks.includes(:project).find(params[:id])
     rescue ActiveRecord::RecordNotFound
       render json: { error: "Task not found" }, status: :not_found
     end
@@ -91,6 +92,17 @@ module Api
       scope.where(priority: p)
     end
 
+    def apply_project_filter(scope, raw_project)
+      raw = raw_project.to_s.strip
+      return scope if raw.blank?
+      return scope unless raw.match?(/\A\d+\z/)
+
+      project_id = raw.to_i
+      return scope.none unless current_user_projects.exists?(id: project_id)
+
+      scope.where(project_id: project_id)
+    end
+
     SORTABLE_COLUMNS = %w[created_at due_date].freeze
 
     def apply_sort(scope, raw_sort, raw_direction)
@@ -109,7 +121,15 @@ module Api
     end
 
     def task_params
-      params.require(:task).permit(:title, :description, :status, :priority, :due_date, :tags)
+      params.require(:task).permit(
+        :title,
+        :description,
+        :status,
+        :priority,
+        :due_date,
+        :tags,
+        :project_id,
+      )
     end
   end
 end

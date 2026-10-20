@@ -27,6 +27,7 @@ const sampleInput = {
   priority: "medium" as const,
   dueDate: "",
   tags: "",
+  projectId: "",
 };
 
 function mockResponse(status: number, body?: unknown): Response {
@@ -107,6 +108,8 @@ describe("task API fetch errors", () => {
         priority: "medium",
         due_date: null,
         tags: null,
+        project_id: null,
+        project: null,
         created_at: "2026-07-14T00:00:00.000Z",
         updated_at: "2026-07-14T00:00:00.000Z",
       }),
@@ -133,6 +136,8 @@ describe("task API fetch errors", () => {
         priority: "medium",
         due_date: null,
         tags: null,
+        project_id: null,
+        project: null,
         created_at: "2026-07-14T00:00:00.000Z",
         updated_at: "2026-07-14T00:00:00.000Z",
       }),
@@ -156,10 +161,10 @@ describe("task API fetch errors", () => {
       }),
     );
 
-    await fetchTasks({ q: "foo" });
+    await fetchTasks({ q: "foo", project: 3 });
 
     expect(fetchMock).toHaveBeenCalledWith(
-      expect.stringContaining("/api/tasks?q=foo"),
+      expect.stringContaining("/api/tasks?q=foo&project=3"),
       expect.objectContaining({
         cache: "no-store",
       }),
@@ -178,6 +183,8 @@ describe("task API fetch errors", () => {
             priority: "medium",
             due_date: null,
             tags: null,
+            project_id: null,
+            project: null,
             created_at: "2026-07-14T00:00:00.000Z",
             updated_at: "2026-07-14T00:00:00.000Z",
           },
@@ -196,6 +203,8 @@ describe("task API fetch errors", () => {
           priority: "medium",
           due_date: null,
           tags: null,
+          project_id: null,
+          project: null,
           created_at: "2026-07-14T00:00:00.000Z",
           updated_at: "2026-07-14T00:00:00.000Z",
         },
@@ -215,6 +224,7 @@ describe("taskMutationBody", () => {
         priority: "medium",
         dueDate: "2026-06-20",
         tags: "work,urgent",
+        projectId: "3",
       }),
     ).toEqual({
       task: {
@@ -224,6 +234,7 @@ describe("taskMutationBody", () => {
         priority: "medium",
         due_date: "2026-06-20",
         tags: "work,urgent",
+        project_id: 3,
       },
     });
   });
@@ -237,6 +248,7 @@ describe("taskMutationBody", () => {
         priority: "low",
         dueDate: "",
         tags: "",
+        projectId: "",
       }),
     ).toEqual({
       task: {
@@ -246,6 +258,7 @@ describe("taskMutationBody", () => {
         priority: "low",
         due_date: null,
         tags: null,
+        project_id: null,
       },
     });
   });

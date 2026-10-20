@@ -8,6 +8,14 @@
 #     MovieGenre.find_or_create_by!(name: genre_name)
 #   end
 
+demo_user = User.find_or_create_by!(email: "demo@example.com") do |user|
+  user.password = "password"
+  user.password_confirmation = "password"
+end
+
+work = demo_user.projects.find_or_create_by!(name: "Work")
+personal = demo_user.projects.find_or_create_by!(name: "Personal")
+
 seed_tasks = [
   {
     title: "Buy groceries",
@@ -15,7 +23,8 @@ seed_tasks = [
     status: :todo,
     priority: :medium,
     due_date: Time.zone.today + 2,
-    tags: "personal,errand"
+    tags: "personal,errand",
+    project: personal,
   },
   {
     title: "Prepare sprint report",
@@ -23,7 +32,8 @@ seed_tasks = [
     status: :in_progress,
     priority: :high,
     due_date: Time.zone.today + 1,
-    tags: "work,report"
+    tags: "work,report",
+    project: work,
   },
   {
     title: "Book health checkup",
@@ -31,14 +41,10 @@ seed_tasks = [
     status: :done,
     priority: :low,
     due_date: Time.zone.today - 7,
-    tags: "personal,health"
-  }
+    tags: "personal,health",
+    project: nil,
+  },
 ]
-
-demo_user = User.find_or_create_by!(email: "demo@example.com") do |user|
-  user.password = "password"
-  user.password_confirmation = "password"
-end
 
 seed_tasks.each do |attrs|
   demo_user.tasks.find_or_create_by!(title: attrs[:title]) do |task|
@@ -47,5 +53,6 @@ seed_tasks.each do |attrs|
     task.priority = attrs[:priority]
     task.due_date = attrs[:due_date]
     task.tags = attrs[:tags]
+    task.project = attrs[:project]
   end
 end

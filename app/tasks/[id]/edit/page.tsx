@@ -6,8 +6,10 @@ import {
   isUnauthorizedError,
   readApiClientError,
 } from "@/lib/api/errors";
+import { fetchProjects } from "@/lib/api/projects";
 import { isTaskNotFoundError } from "@/lib/api/tasks.client";
 import { fetchTask } from "@/lib/api/tasks.server";
+import { projectsFromDto } from "@/lib/types/project";
 import { taskFromDto } from "@/lib/types/task";
 
 type TaskEditPageProps = {
@@ -54,6 +56,12 @@ export default async function TaskEditPage({ params }: TaskEditPageProps) {
   }
 
   const task = taskFromDto(taskDto);
+  let projects: ReturnType<typeof projectsFromDto> = [];
+  try {
+    projects = projectsFromDto(await fetchProjects());
+  } catch {
+    projects = [];
+  }
 
   return (
     <main className="p-8">
@@ -64,7 +72,7 @@ export default async function TaskEditPage({ params }: TaskEditPageProps) {
         ← 一覧に戻る
       </Link>
       <h1 className="mt-4 text-2xl font-semibold">タスク編集</h1>
-      <TaskEditForm task={task} />
+      <TaskEditForm task={task} projects={projects} />
     </main>
   );
 }
