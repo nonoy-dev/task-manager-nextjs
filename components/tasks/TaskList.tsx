@@ -1,3 +1,4 @@
+import { EmptyState } from "@/components/shared/EmptyState";
 import type { Task } from "@/lib/types/task";
 import { TaskItem } from "./TaskItem";
 
@@ -9,11 +10,14 @@ type TaskListProps = {
 export function TaskList({ tasks, hasFilters = false }: TaskListProps) {
   if (tasks.length === 0) {
     return (
-      <p className="mt-4 text-foreground/70">
-        {hasFilters
-          ? "条件に一致するタスクはありません。"
-          : "タスクはまだありません。"}
-      </p>
+      <EmptyState
+        className="mt-4"
+        message={
+          hasFilters
+            ? "条件に一致するタスクはありません。"
+            : "タスクはまだありません。"
+        }
+      />
     );
   }
 

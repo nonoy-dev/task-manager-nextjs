@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { EmptyState } from "@/components/shared/EmptyState";
 import { formatDueDate } from "@/lib/tasks/dateUtils";
 import type { Task } from "@/lib/types/task";
 
@@ -24,7 +25,7 @@ export function AttentionTaskList({
         </span>
       </h2>
       {tasks.length === 0 ? (
-        <p className="mt-3 text-foreground/70">{emptyMessage}</p>
+        <EmptyState className="mt-3" message={emptyMessage} />
       ) : (
         <ul className="mt-3 flex flex-col gap-2">
           {tasks.map((task) => {
