@@ -64,7 +64,7 @@ export default async function Home({ searchParams }: HomeProps) {
       {listError ? (
         <div className="mt-4">
           <RefreshableErrorBanner
-            title="一覧の取得に失敗しました"
+            title="タスクの取得に失敗しました"
             message={listError}
             unauthorized={unauthorized}
           />
