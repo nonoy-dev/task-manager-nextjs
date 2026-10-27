@@ -1,6 +1,10 @@
 import "server-only";
 
-import { NETWORK_ERROR_MESSAGE, UNAUTHORIZED_MESSAGE } from "@/lib/api/errors";
+import {
+  NETWORK_ERROR_MESSAGE,
+  SERVER_ERROR_MESSAGE,
+  UNAUTHORIZED_MESSAGE,
+} from "@/lib/api/errors";
 import { sessionCookieHeader } from "@/lib/auth/sessionCookieHeader";
 import {
   parseDashboardResponse,
@@ -18,7 +22,7 @@ function fetchDashboardError(status: number): Error {
   if (status === 401) {
     return new Error(UNAUTHORIZED_MESSAGE);
   }
-  return new Error(`ダッシュボードの取得に失敗しました (${status})`);
+  return new Error(SERVER_ERROR_MESSAGE);
 }
 
 async function withNetworkError(

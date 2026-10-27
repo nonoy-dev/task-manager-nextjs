@@ -1,6 +1,10 @@
 import "server-only";
 
-import { NETWORK_ERROR_MESSAGE, UNAUTHORIZED_MESSAGE } from "@/lib/api/errors";
+import {
+  NETWORK_ERROR_MESSAGE,
+  SERVER_ERROR_MESSAGE,
+  UNAUTHORIZED_MESSAGE,
+} from "@/lib/api/errors";
 import { TASK_NOT_FOUND_MESSAGE } from "@/lib/api/tasks.client";
 import { sessionCookieHeader } from "@/lib/auth/sessionCookieHeader";
 import {
@@ -27,7 +31,7 @@ function fetchTasksError(status: number): Error {
   if (status === 401) {
     return new Error(UNAUTHORIZED_MESSAGE);
   }
-  return new Error(`タスクの取得に失敗しました (${status})`);
+  return new Error(SERVER_ERROR_MESSAGE);
 }
 
 async function withNetworkError(
