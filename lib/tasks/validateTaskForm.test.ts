@@ -57,4 +57,14 @@ describe("validateFormValues", () => {
   it("returns no errors for valid values", () => {
     expect(validateFormValues(validValues)).toEqual({});
   });
+
+  it("allows a past due date when allowPastDueDate is set", () => {
+    expect(
+      validateFormValues(
+        { ...validValues, dueDate: "2026-06-19" },
+        { allowPastDueDate: true },
+      ),
+    ).toEqual({});
+  });
 });
+
