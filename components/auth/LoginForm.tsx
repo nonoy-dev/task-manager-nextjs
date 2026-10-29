@@ -6,35 +6,16 @@ import { ErrorBanner } from "@/components/shared/ErrorBanner";
 import { FormTextField } from "@/components/shared/form";
 import { readApiClientError } from "@/lib/api/errors";
 import { login } from "@/lib/api/sessions.client";
-
-type LoginFormValues = {
-  email: string;
-  password: string;
-};
-
-type LoginFormErrors = {
-  email?: string;
-  password?: string;
-};
+import {
+  validateLoginValues,
+  type LoginFormErrors,
+  type LoginFormValues,
+} from "@/lib/auth/validateLoginForm";
 
 const initialValues: LoginFormValues = {
   email: "",
   password: "",
 };
-
-function validateLoginValues(values: LoginFormValues): LoginFormErrors {
-  const errors: LoginFormErrors = {};
-
-  if (!values.email.trim()) {
-    errors.email = "メールアドレスは必須です";
-  }
-
-  if (!values.password) {
-    errors.password = "パスワードは必須です";
-  }
-
-  return errors;
-}
 
 export function LoginForm() {
   const router = useRouter();
