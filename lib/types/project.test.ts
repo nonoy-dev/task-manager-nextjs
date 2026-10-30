@@ -49,7 +49,7 @@ describe("parseProjectDto", () => {
 
   it("throws when the API response shape is invalid", () => {
     expect(() => parseProjectDto({ id: "1", name: "Alpha" })).toThrow(
-      INVALID_PROJECT_DTO_MESSAGE,
+      "データの形式が不正です",
     );
   });
 });

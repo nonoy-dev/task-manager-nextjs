@@ -22,4 +22,13 @@ describe("validateLoginValues", () => {
       }),
     ).toEqual({});
   });
+
+  it("rejects a whitespace-only password", () => {
+    expect(
+      validateLoginValues({
+        email: "demo@example.com",
+        password: "   ",
+      }).password,
+    ).toBe("パスワードは必須です");
+  });
 });
