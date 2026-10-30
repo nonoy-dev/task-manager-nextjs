@@ -11,9 +11,10 @@ const loginFormSchema = z.object({
   email: z.string().refine((value) => value.trim().length > 0, {
     error: "メールアドレスは必須です",
   }),
-  password: z.string().refine((value) => value.length > 0, {
+  password: z.string().refine((value) => value.trim().length > 0, {
     error: "パスワードは必須です",
   }),
+
 });
 
 function formErrorsFromZod(error: z.ZodError): LoginFormErrors {

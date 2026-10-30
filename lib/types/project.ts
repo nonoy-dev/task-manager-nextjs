@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const INVALID_PROJECT_DTO_MESSAGE = "Invalid project API response";
+export const INVALID_PROJECT_DTO_MESSAGE = "データの形式が不正です";
 
 export const projectDtoSchema = z.object({
   id: z.number(),
