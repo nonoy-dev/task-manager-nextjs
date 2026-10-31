@@ -48,7 +48,7 @@ const taskListResponseSchema = z.object({
 export type TaskListMeta = z.infer<typeof taskListMetaSchema>;
 export type TaskListResponse = z.infer<typeof taskListResponseSchema>;
 
-export const INVALID_TASK_DTO_MESSAGE = "Invalid task API response";
+export const INVALID_TASK_DTO_MESSAGE = "データの形式が不正です";
 
 export function parseTaskDto(data: unknown): TaskDto {
   const result = taskDtoSchema.safeParse(data);
