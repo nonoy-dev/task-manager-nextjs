@@ -84,7 +84,7 @@ describe("parseTaskDto", () => {
 
   it("throws when the API response shape is invalid", () => {
     expect(() => parseTaskDto({ id: "1", title: "買い物" })).toThrow(
-      INVALID_TASK_DTO_MESSAGE,
+      "データの形式が不正です",
     );
   });
 });

@@ -57,4 +57,29 @@ describe("validateFormValues", () => {
   it("returns no errors for valid values", () => {
     expect(validateFormValues(validValues)).toEqual({});
   });
+
+  it("rejects a whitespace-only title", () => {
+    expect(validateFormValues({ ...validValues, title: "   " }).title).toBe(
+      "タイトルは必須です",
+    );
+  });
+
+  it("allows an empty due date and today as the due date", () => {
+    expect(
+      validateFormValues({ ...validValues, dueDate: "" }),
+    ).toEqual({});
+    expect(
+      validateFormValues({ ...validValues, dueDate: "2026-06-20" }),
+    ).toEqual({});
+  });
+
+  it("allows a past due date when allowPastDueDate is set", () => {
+    expect(
+      validateFormValues(
+        { ...validValues, dueDate: "2026-06-19" },
+        { allowPastDueDate: true },
+      ),
+    ).toEqual({});
+  });
 });
+
