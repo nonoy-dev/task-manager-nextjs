@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { apiFetch, login } from "./http";
+import { apiFetch, getSessionCookie, login } from "./http";
 
 describe("Rails API task CRUD (integration)", () => {
   it("logs in, creates, updates, and deletes a task", async () => {
@@ -7,6 +7,7 @@ describe("Rails API task CRUD (integration)", () => {
 
     const sessionRes = await login("demo@example.com", "password");
     expect(sessionRes.status).toBe(201);
+    expect(getSessionCookie()).toMatch(/^_backend_session=.+/);
 
     const createRes = await apiFetch("/api/tasks", {
       method: "POST",

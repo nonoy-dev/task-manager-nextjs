@@ -3,6 +3,10 @@ const SESSION_COOKIE = "_backend_session";
 
 let sessionCookie: string | undefined;
 
+export function getSessionCookie(): string | undefined {
+  return sessionCookie;
+}
+
 export function apiUrl(path: string): string {
   return `${API_BASE}${path.startsWith("/") ? path : `/${path}`}`;
 }
