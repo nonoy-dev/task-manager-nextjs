@@ -70,5 +70,19 @@ RSpec.describe "Api::Sessions", type: :request do
       expect(response).to have_http_status(:no_content)
       expect(session[:user_id]).to be_nil
     end
+
+    it "removes the session cookie so cookie-presence checks treat the user as logged out" do
+      post api_session_path,
+           params: { email: user.email, password: "password" },
+           as: :json
+      expect(response.cookies["_backend_session"]).to be_present
+
+      delete api_session_path, as: :json
+
+      expect(response).to have_http_status(:no_content)
+      expect(response.cookies["_backend_session"]).to be_blank
+      get api_session_path, as: :json
+      expect(response).to have_http_status(:unauthorized)
+    end
   end
 end

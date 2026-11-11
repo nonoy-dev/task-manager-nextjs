@@ -22,6 +22,8 @@ module Api
 
     def destroy
       reset_session
+      request.session_options[:skip] = true
+      cookies.delete("_backend_session")
       head :no_content
     end
   end
