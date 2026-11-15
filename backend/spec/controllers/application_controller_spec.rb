@@ -12,11 +12,7 @@ RSpec.describe ApplicationController, type: :controller do
   end
 
   let!(:user) do
-    User.create!(
-      email: "auth-spec@example.com",
-      password: "password",
-      password_confirmation: "password",
-    )
+    create(:user, email: "auth-spec@example.com")
   end
 
   describe "authenticate_user!" do
