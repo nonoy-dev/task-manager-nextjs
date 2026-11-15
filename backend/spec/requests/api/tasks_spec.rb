@@ -683,6 +683,50 @@ RSpec.describe "Api::Tasks", type: :request do
         expect(task.priority).to eq("high")
       end
 
+      it "updates and clears due_date" do
+        task = create(:task, user: user, title: "Due date patch", status: :todo, priority: :low)
+
+        patch api_task_path(task),
+              params: { task: { due_date: "2026-12-01" } },
+              as: :json
+
+        expect(response).to have_http_status(:ok)
+        json = response.parsed_body
+        expect(json["due_date"]).to eq("2026-12-01")
+        expect(task.reload.due_date).to eq(Date.new(2026, 12, 1))
+        expect_task_json_shape(json)
+
+        patch api_task_path(task),
+              params: { task: { due_date: nil } },
+              as: :json
+
+        expect(response).to have_http_status(:ok)
+        cleared = response.parsed_body
+        expect(cleared["due_date"]).to be_nil
+        expect(task.reload.due_date).to be_nil
+      end
+
+      it "updates description" do
+        task = create(
+          :task,
+          user: user,
+          title: "Desc patch",
+          status: :todo,
+          priority: :low,
+          description: "Before",
+        )
+
+        patch api_task_path(task),
+              params: { task: { description: "After details" } },
+              as: :json
+
+        expect(response).to have_http_status(:ok)
+        json = response.parsed_body
+        expect(json["description"]).to eq("After details")
+        expect(task.reload.description).to eq("After details")
+        expect_task_json_shape(json)
+      end
+
       it "returns 422 when update is invalid" do
         task = create(:task, user: user, title: "Keep", status: :todo, priority: :low)
 
