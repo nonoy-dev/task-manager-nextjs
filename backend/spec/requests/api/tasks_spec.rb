@@ -4,11 +4,7 @@ require "rails_helper"
 
 RSpec.describe "Api::Tasks", type: :request do
   let!(:user) do
-    User.create!(
-      email: "tasks-spec@example.com",
-      password: "password",
-      password_confirmation: "password",
-    )
+    create(:user, email: "tasks-spec@example.com")
   end
 
   def login_as(user)
@@ -46,7 +42,7 @@ RSpec.describe "Api::Tasks", type: :request do
       end
 
       it "returns tasks as JSON" do
-        user.tasks.create!(title: "Alpha", status: :todo, priority: :low)
+        create(:task, user: user, title: "Alpha", status: :todo, priority: :low)
 
         get api_tasks_path
 
@@ -67,13 +63,9 @@ RSpec.describe "Api::Tasks", type: :request do
       end
 
       it "does not include other users tasks" do
-        other = User.create!(
-          email: "other-tasks@example.com",
-          password: "password",
-          password_confirmation: "password",
-        )
-        other.tasks.create!(title: "Other user task", status: :todo, priority: :low)
-        user.tasks.create!(title: "Mine", status: :todo, priority: :low)
+        other = create(:user, email: "other-tasks@example.com")
+        create(:task, user: other, title: "Other user task", status: :todo, priority: :low)
+        create(:task, user: user, title: "Mine", status: :todo, priority: :low)
 
         get api_tasks_path
 
@@ -83,8 +75,8 @@ RSpec.describe "Api::Tasks", type: :request do
       end
 
       it "filters by partial title match case-insensitively" do
-        user.tasks.create!(title: "Meeting prep", status: :todo, priority: :low)
-        user.tasks.create!(title: "Other", status: :todo, priority: :low)
+        create(:task, user: user, title: "Meeting prep", status: :todo, priority: :low)
+        create(:task, user: user, title: "Other", status: :todo, priority: :low)
 
         get api_tasks_path, params: { q: "meet" }
 
@@ -95,8 +87,8 @@ RSpec.describe "Api::Tasks", type: :request do
       end
 
       it "filters by partial description match" do
-        user.tasks.create!(title: "Doc A", description: "Ruby on Rails", status: :todo, priority: :low)
-        user.tasks.create!(title: "Doc B", description: "Python only", status: :todo, priority: :low)
+        create(:task, user: user, title: "Doc A", description: "Ruby on Rails", status: :todo, priority: :low)
+        create(:task, user: user, title: "Doc B", description: "Python only", status: :todo, priority: :low)
 
         get api_tasks_path, params: { q: "rails" }
 
@@ -107,8 +99,8 @@ RSpec.describe "Api::Tasks", type: :request do
       end
 
       it "returns all tasks when q is blank" do
-        user.tasks.create!(title: "One", status: :todo, priority: :low)
-        user.tasks.create!(title: "Two", status: :todo, priority: :low)
+        create(:task, user: user, title: "One", status: :todo, priority: :low)
+        create(:task, user: user, title: "Two", status: :todo, priority: :low)
 
         get api_tasks_path, params: { q: "   " }
 
@@ -117,8 +109,8 @@ RSpec.describe "Api::Tasks", type: :request do
       end
 
       it "filters by status when status param is present" do
-        user.tasks.create!(title: "Todo A", status: :todo, priority: :low)
-        user.tasks.create!(title: "Done B", status: :done, priority: :low)
+        create(:task, user: user, title: "Todo A", status: :todo, priority: :low)
+        create(:task, user: user, title: "Done B", status: :done, priority: :low)
 
         get api_tasks_path, params: { status: "todo" }
 
@@ -130,8 +122,8 @@ RSpec.describe "Api::Tasks", type: :request do
       end
 
       it "filters by priority when priority param is present" do
-        user.tasks.create!(title: "Low P", status: :todo, priority: :low)
-        user.tasks.create!(title: "High P", status: :todo, priority: :high)
+        create(:task, user: user, title: "Low P", status: :todo, priority: :low)
+        create(:task, user: user, title: "High P", status: :todo, priority: :high)
 
         get api_tasks_path, params: { priority: "high" }
 
@@ -143,11 +135,11 @@ RSpec.describe "Api::Tasks", type: :request do
       end
 
       it "filters by project when project param is present" do
-        alpha = user.projects.create!(name: "Alpha")
-        beta = user.projects.create!(name: "Beta")
-        user.tasks.create!(title: "Alpha task", status: :todo, priority: :low, project: alpha)
-        user.tasks.create!(title: "Beta task", status: :todo, priority: :low, project: beta)
-        user.tasks.create!(title: "No project", status: :todo, priority: :low)
+        alpha = create(:project, user: user, name: "Alpha")
+        beta = create(:project, user: user, name: "Beta")
+        create(:task, user: user, title: "Alpha task", status: :todo, priority: :low, project: alpha)
+        create(:task, user: user, title: "Beta task", status: :todo, priority: :low, project: beta)
+        create(:task, user: user, title: "No project", status: :todo, priority: :low)
 
         get api_tasks_path, params: { project: alpha.id }
 
@@ -160,13 +152,9 @@ RSpec.describe "Api::Tasks", type: :request do
       end
 
       it "returns empty list when project belongs to another user" do
-        other = User.create!(
-          email: "other-project-filter@example.com",
-          password: "password",
-          password_confirmation: "password",
-        )
-        other_project = other.projects.create!(name: "Other")
-        user.tasks.create!(title: "Mine", status: :todo, priority: :low)
+        other = create(:user, email: "other-project-filter@example.com")
+        other_project = create(:project, user: other, name: "Other")
+        create(:task, user: user, title: "Mine", status: :todo, priority: :low)
 
         get api_tasks_path, params: { project: other_project.id }
 
@@ -175,8 +163,8 @@ RSpec.describe "Api::Tasks", type: :request do
       end
 
       it "ignores invalid project param" do
-        user.tasks.create!(title: "One", status: :todo, priority: :low)
-        user.tasks.create!(title: "Two", status: :todo, priority: :low)
+        create(:task, user: user, title: "One", status: :todo, priority: :low)
+        create(:task, user: user, title: "Two", status: :todo, priority: :low)
 
         get api_tasks_path, params: { project: "not-a-number" }
 
@@ -185,9 +173,9 @@ RSpec.describe "Api::Tasks", type: :request do
       end
 
       it "includes nested project on list items" do
-        project = user.projects.create!(name: "Work")
-        user.tasks.create!(title: "With project", status: :todo, priority: :low, project: project)
-        user.tasks.create!(title: "Without project", status: :todo, priority: :low)
+        project = create(:project, user: user, name: "Work")
+        create(:task, user: user, title: "With project", status: :todo, priority: :low, project: project)
+        create(:task, user: user, title: "Without project", status: :todo, priority: :low)
 
         get api_tasks_path
 
@@ -203,8 +191,8 @@ RSpec.describe "Api::Tasks", type: :request do
       end
 
       it "ignores invalid status param" do
-        user.tasks.create!(title: "Todo A", status: :todo, priority: :low)
-        user.tasks.create!(title: "Done B", status: :done, priority: :low)
+        create(:task, user: user, title: "Todo A", status: :todo, priority: :low)
+        create(:task, user: user, title: "Done B", status: :done, priority: :low)
 
         get api_tasks_path
         expect(response.parsed_body["tasks"].size).to eq(2)
@@ -216,8 +204,8 @@ RSpec.describe "Api::Tasks", type: :request do
       end
 
       it "combines q with status filter" do
-        user.tasks.create!(title: "Alpha meeting", status: :todo, priority: :low)
-        user.tasks.create!(title: "Beta meeting", status: :done, priority: :low)
+        create(:task, user: user, title: "Alpha meeting", status: :todo, priority: :low)
+        create(:task, user: user, title: "Beta meeting", status: :done, priority: :low)
 
         get api_tasks_path, params: { q: "meeting", status: "todo" }
 
@@ -228,8 +216,8 @@ RSpec.describe "Api::Tasks", type: :request do
       end
 
       it "sorts by created_at ascending when requested" do
-        older = user.tasks.create!(title: "Older", status: :todo, priority: :low)
-        newer = user.tasks.create!(title: "Newer", status: :todo, priority: :low)
+        older = create(:task, user: user, title: "Older", status: :todo, priority: :low)
+        newer = create(:task, user: user, title: "Newer", status: :todo, priority: :low)
         older.update_column(:created_at, 2.days.ago)
         newer.update_column(:created_at, 1.day.ago)
 
@@ -241,13 +229,13 @@ RSpec.describe "Api::Tasks", type: :request do
       end
 
       it "sorts by due_date ascending when requested" do
-        user.tasks.create!(
+        create(:task, user: user,
           title: "Later due",
           status: :todo,
           priority: :low,
           due_date: Date.new(2026, 12, 1),
         )
-        user.tasks.create!(
+        create(:task, user: user,
           title: "Sooner due",
           status: :todo,
           priority: :low,
@@ -262,8 +250,8 @@ RSpec.describe "Api::Tasks", type: :request do
       end
 
       it "defaults invalid sort key to created_at ordering" do
-        first = user.tasks.create!(title: "First", status: :todo, priority: :low)
-        second = user.tasks.create!(title: "Second", status: :todo, priority: :low)
+        first = create(:task, user: user, title: "First", status: :todo, priority: :low)
+        second = create(:task, user: user, title: "Second", status: :todo, priority: :low)
         first.update_column(:created_at, 2.days.ago)
         second.update_column(:created_at, 1.day.ago)
 
@@ -277,7 +265,7 @@ RSpec.describe "Api::Tasks", type: :request do
       describe "pagination" do
         def create_ordered_tasks(count)
           count.times do |i|
-            task = user.tasks.create!(
+            task = create(:task, user: user,
               title: format("Task %02d", i + 1),
               status: :todo,
               priority: :low,
@@ -371,7 +359,7 @@ RSpec.describe "Api::Tasks", type: :request do
         it "paginates after filters so meta total reflects the filtered scope" do
           create_ordered_tasks(5)
           3.times do |i|
-            task = user.tasks.create!(
+            task = create(:task, user: user,
               title: format("Done %02d", i + 1),
               status: :done,
               priority: :low,
@@ -403,7 +391,7 @@ RSpec.describe "Api::Tasks", type: :request do
 
     describe "GET /api/tasks/:id" do
       it "returns http success" do
-        task = user.tasks.create!(title: "Show", status: :todo, priority: :medium)
+        task = create(:task, user: user, title: "Show", status: :todo, priority: :medium)
 
         get api_task_path(task)
 
@@ -411,7 +399,7 @@ RSpec.describe "Api::Tasks", type: :request do
       end
 
       it "returns the task as JSON" do
-        task = user.tasks.create!(title: "Beta", status: :in_progress, priority: :high)
+        task = create(:task, user: user, title: "Beta", status: :in_progress, priority: :high)
 
         get api_task_path(task)
 
@@ -430,12 +418,8 @@ RSpec.describe "Api::Tasks", type: :request do
       end
 
       it "returns not found when the task belongs to another user" do
-        other = User.create!(
-          email: "other-show@example.com",
-          password: "password",
-          password_confirmation: "password",
-        )
-        other_task = other.tasks.create!(title: "Other show", status: :todo, priority: :low)
+        other = create(:user, email: "other-show@example.com")
+        other_task = create(:task, user: other, title: "Other show", status: :todo, priority: :low)
 
         get api_task_path(other_task)
 
@@ -446,7 +430,7 @@ RSpec.describe "Api::Tasks", type: :request do
 
     describe "DELETE /api/tasks/:id" do
       it "destroys the task" do
-        task = user.tasks.create!(title: "Delete me", status: :todo, priority: :low)
+        task = create(:task, user: user, title: "Delete me", status: :todo, priority: :low)
 
         expect {
           delete api_task_path(task)
@@ -463,12 +447,8 @@ RSpec.describe "Api::Tasks", type: :request do
       end
 
       it "returns not found when the task belongs to another user" do
-        other = User.create!(
-          email: "other-destroy@example.com",
-          password: "password",
-          password_confirmation: "password",
-        )
-        other_task = other.tasks.create!(title: "Other delete", status: :todo, priority: :low)
+        other = create(:user, email: "other-destroy@example.com")
+        other_task = create(:task, user: other, title: "Other delete", status: :todo, priority: :low)
 
         expect {
           delete api_task_path(other_task)
@@ -522,11 +502,7 @@ RSpec.describe "Api::Tasks", type: :request do
       end
 
       it "does not assign the task to another user when user_id is sent" do
-        other = User.create!(
-          email: "other-create@example.com",
-          password: "password",
-          password_confirmation: "password",
-        )
+        other = create(:user, email: "other-create@example.com")
 
         post api_tasks_path,
              params: {
@@ -619,7 +595,7 @@ RSpec.describe "Api::Tasks", type: :request do
       end
 
       it "creates a task with the current user's project_id" do
-        project = user.projects.create!(name: "Alpha")
+        project = create(:project, user: user, name: "Alpha")
 
         post api_tasks_path,
              params: {
@@ -659,12 +635,8 @@ RSpec.describe "Api::Tasks", type: :request do
       end
 
       it "returns 422 when project_id belongs to another user" do
-        other = User.create!(
-          email: "other-project-create@example.com",
-          password: "password",
-          password_confirmation: "password",
-        )
-        other_project = other.projects.create!(name: "Other")
+        other = create(:user, email: "other-project-create@example.com")
+        other_project = create(:project, user: other, name: "Other")
 
         expect {
           post api_tasks_path,
@@ -684,7 +656,7 @@ RSpec.describe "Api::Tasks", type: :request do
 
     describe "PATCH /api/tasks/:id" do
       it "updates the task status" do
-        task = user.tasks.create!(title: "Patch target", status: :todo, priority: :medium)
+        task = create(:task, user: user, title: "Patch target", status: :todo, priority: :medium)
 
         patch api_task_path(task), params: { task: { status: "done" } }, as: :json
 
@@ -697,7 +669,7 @@ RSpec.describe "Api::Tasks", type: :request do
       end
 
       it "updates title and priority" do
-        task = user.tasks.create!(title: "Before", status: :todo, priority: :low)
+        task = create(:task, user: user, title: "Before", status: :todo, priority: :low)
 
         patch api_task_path(task),
               params: { task: { title: "After", priority: "high" } },
@@ -711,8 +683,52 @@ RSpec.describe "Api::Tasks", type: :request do
         expect(task.priority).to eq("high")
       end
 
+      it "updates and clears due_date" do
+        task = create(:task, user: user, title: "Due date patch", status: :todo, priority: :low)
+
+        patch api_task_path(task),
+              params: { task: { due_date: "2026-12-01" } },
+              as: :json
+
+        expect(response).to have_http_status(:ok)
+        json = response.parsed_body
+        expect(json["due_date"]).to eq("2026-12-01")
+        expect(task.reload.due_date).to eq(Date.new(2026, 12, 1))
+        expect_task_json_shape(json)
+
+        patch api_task_path(task),
+              params: { task: { due_date: nil } },
+              as: :json
+
+        expect(response).to have_http_status(:ok)
+        cleared = response.parsed_body
+        expect(cleared["due_date"]).to be_nil
+        expect(task.reload.due_date).to be_nil
+      end
+
+      it "updates description" do
+        task = create(
+          :task,
+          user: user,
+          title: "Desc patch",
+          status: :todo,
+          priority: :low,
+          description: "Before",
+        )
+
+        patch api_task_path(task),
+              params: { task: { description: "After details" } },
+              as: :json
+
+        expect(response).to have_http_status(:ok)
+        json = response.parsed_body
+        expect(json["description"]).to eq("After details")
+        expect(task.reload.description).to eq("After details")
+        expect_task_json_shape(json)
+      end
+
       it "returns 422 when update is invalid" do
-        task = user.tasks.create!(title: "Keep", status: :todo, priority: :low)
+        task = create(:task, user: user, title: "Keep", status: :todo, priority: :low)
 
         patch api_task_path(task), params: { task: { title: "" } }, as: :json
 
@@ -731,12 +747,8 @@ RSpec.describe "Api::Tasks", type: :request do
       end
 
       it "returns not found when the task belongs to another user" do
-        other = User.create!(
-          email: "other-update@example.com",
-          password: "password",
-          password_confirmation: "password",
-        )
-        other_task = other.tasks.create!(title: "Other update", status: :todo, priority: :low)
+        other = create(:user, email: "other-update@example.com")
+        other_task = create(:task, user: other, title: "Other update", status: :todo, priority: :low)
 
         patch api_task_path(other_task), params: { task: { status: "done" } }, as: :json
 
@@ -746,8 +758,8 @@ RSpec.describe "Api::Tasks", type: :request do
       end
 
       it "assigns and clears project_id" do
-        project = user.projects.create!(name: "Beta")
-        task = user.tasks.create!(title: "Patch project", status: :todo, priority: :low)
+        project = create(:project, user: user, name: "Beta")
+        task = create(:task, user: user, title: "Patch project", status: :todo, priority: :low)
 
         patch api_task_path(task),
               params: { task: { project_id: project.id } },
@@ -771,13 +783,9 @@ RSpec.describe "Api::Tasks", type: :request do
       end
 
       it "returns 422 when project_id belongs to another user" do
-        other = User.create!(
-          email: "other-project-update@example.com",
-          password: "password",
-          password_confirmation: "password",
-        )
-        other_project = other.projects.create!(name: "Other")
-        task = user.tasks.create!(title: "Keep project", status: :todo, priority: :low)
+        other = create(:user, email: "other-project-update@example.com")
+        other_project = create(:project, user: other, name: "Other")
+        task = create(:task, user: user, title: "Keep project", status: :todo, priority: :low)
 
         patch api_task_path(task),
               params: { task: { project_id: other_project.id } },

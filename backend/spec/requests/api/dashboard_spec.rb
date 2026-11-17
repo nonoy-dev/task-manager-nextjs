@@ -6,11 +6,7 @@ RSpec.describe "Api::Dashboard", type: :request do
   include ActiveSupport::Testing::TimeHelpers
 
   let!(:user) do
-    User.create!(
-      email: "dashboard-spec@example.com",
-      password: "password",
-      password_confirmation: "password",
-    )
+    create(:user, email: "dashboard-spec@example.com")
   end
 
   def login_as(user)
@@ -33,25 +29,25 @@ RSpec.describe "Api::Dashboard", type: :request do
 
     it "returns overdue and due-today incomplete tasks with meta counts" do
       travel_to Time.zone.local(2026, 9, 20) do
-        overdue = user.tasks.create!(
+        overdue = create(:task, user: user,
           title: "Overdue task",
           status: :todo,
           priority: :high,
           due_date: Date.new(2026, 9, 19),
         )
-        due_today = user.tasks.create!(
+        due_today = create(:task, user: user,
           title: "Due today",
           status: :in_progress,
           priority: :medium,
           due_date: Date.new(2026, 9, 20),
         )
-        user.tasks.create!(
+        create(:task, user: user,
           title: "Later",
           status: :todo,
           priority: :low,
           due_date: Date.new(2026, 9, 21),
         )
-        user.tasks.create!(
+        create(:task, user: user,
           title: "No due date",
           status: :todo,
           priority: :low,
@@ -76,13 +72,13 @@ RSpec.describe "Api::Dashboard", type: :request do
 
     it "excludes completed tasks even when their due date is overdue or today" do
       travel_to Time.zone.local(2026, 9, 20) do
-        user.tasks.create!(
+        create(:task, user: user,
           title: "Done overdue",
           status: :done,
           priority: :high,
           due_date: Date.new(2026, 9, 19),
         )
-        user.tasks.create!(
+        create(:task, user: user,
           title: "Done today",
           status: :done,
           priority: :medium,
@@ -104,24 +100,20 @@ RSpec.describe "Api::Dashboard", type: :request do
 
     it "does not include other users tasks" do
       travel_to Time.zone.local(2026, 9, 20) do
-        other = User.create!(
-          email: "other-dashboard@example.com",
-          password: "password",
-          password_confirmation: "password",
-        )
-        other.tasks.create!(
+        other = create(:user, email: "other-dashboard@example.com")
+        create(:task, user: other,
           title: "Other overdue",
           status: :todo,
           priority: :high,
           due_date: Date.new(2026, 9, 19),
         )
-        other.tasks.create!(
+        create(:task, user: other,
           title: "Other due today",
           status: :todo,
           priority: :medium,
           due_date: Date.new(2026, 9, 20),
         )
-        mine = user.tasks.create!(
+        mine = create(:task, user: user,
           title: "Mine overdue",
           status: :todo,
           priority: :low,

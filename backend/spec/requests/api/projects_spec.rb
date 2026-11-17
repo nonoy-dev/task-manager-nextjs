@@ -4,11 +4,7 @@ require "rails_helper"
 
 RSpec.describe "Api::Projects", type: :request do
   let!(:user) do
-    User.create!(
-      email: "projects-spec@example.com",
-      password: "password",
-      password_confirmation: "password",
-    )
+    create(:user, email: "projects-spec@example.com")
   end
 
   def login_as(user)
@@ -40,14 +36,10 @@ RSpec.describe "Api::Projects", type: :request do
 
     describe "GET /api/projects" do
       it "returns only the current user's projects ordered by name" do
-        other = User.create!(
-          email: "projects-other@example.com",
-          password: "password",
-          password_confirmation: "password",
-        )
-        user.projects.create!(name: "Beta")
-        user.projects.create!(name: "Alpha")
-        other.projects.create!(name: "Other")
+        other = create(:user, email: "projects-other@example.com")
+        create(:project, user: user, name: "Beta")
+        create(:project, user: user, name: "Alpha")
+        create(:project, user: other, name: "Other")
 
         get api_projects_path
 
