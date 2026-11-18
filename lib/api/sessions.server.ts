@@ -30,7 +30,7 @@ export async function fetchSessionUser(): Promise<SessionUser> {
   }
 
   if (!res.ok) {
-    throw new Error(`セッションの取得に失敗しました (${res.status})`);
+    throw new Error("セッションの取得に失敗しました");
   }
 
   return (await res.json()) as SessionUser;

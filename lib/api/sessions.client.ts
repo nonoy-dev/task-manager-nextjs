@@ -29,7 +29,7 @@ async function loginErrorMessage(res: Response): Promise<string> {
     return "メールアドレスまたはパスワードが正しくありません";
   }
 
-  return body?.error ?? `ログインに失敗しました (${res.status})`;
+  return body?.error ?? "ログインに失敗しました";
 }
 
 export async function login(
@@ -55,6 +55,6 @@ export async function logout(): Promise<void> {
   });
 
   if (!res.ok) {
-    throw new Error(`ログアウトに失敗しました (${res.status})`);
+    throw new Error("ログアウトに失敗しました");
   }
 }

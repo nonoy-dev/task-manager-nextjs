@@ -86,7 +86,7 @@ async function throwTaskMutationError(
     }
   }
 
-  throw new Error(`${fallback} (${res.status})`);
+  throw new Error(fallback);
 }
 
 async function mutationErrorMessage(
@@ -102,7 +102,7 @@ async function mutationErrorMessage(
     return body.errors.join(", ");
   }
 
-  return `${fallback} (${res.status})`;
+  return fallback;
 }
 
 async function withNetworkError(
