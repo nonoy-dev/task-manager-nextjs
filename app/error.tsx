@@ -1,11 +1,16 @@
 "use client";
 
-import type { ErrorInfo } from "next/error";
 import Link from "next/link";
 import { useEffect } from "react";
 import { ErrorBanner } from "@/components/shared/ErrorBanner";
 
-export default function Error({ error, unstable_retry }: ErrorInfo) {
+export default function ErrorPage({
+  error,
+  retry,
+}: {
+  error: unknown;
+  retry: () => void;
+}) {
   useEffect(() => {
     console.error(error);
   }, [error]);
@@ -14,8 +19,8 @@ export default function Error({ error, unstable_retry }: ErrorInfo) {
     <main className="p-8">
       <ErrorBanner
         title="ページの表示に失敗しました"
-        message={error.message}
-        onRetry={() => unstable_retry()}
+        message="しばらくしてから再試行してください。"
+        onRetry={() => retry()}
       />
       <Link
         href="/"
