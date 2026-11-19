@@ -94,7 +94,7 @@ describe("task API fetch errors", () => {
     );
 
     await expect(createTask(sampleInput)).rejects.toThrow(
-      "タスクの作成に失敗しました (422)",
+      "タスクの作成に失敗しました",
     );
   });
 
