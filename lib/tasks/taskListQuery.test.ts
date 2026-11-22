@@ -52,6 +52,14 @@ describe("parseTaskListQuery", () => {
     ).toEqual({ q: "ok" });
   });
 
+  it("keeps a trimmed tag and drops a blank tag", () => {
+    expect(parseTaskListQuery({ tag: "  work  " })).toEqual({ tag: "work" });
+    expect(parseTaskListQuery({ tag: "   " })).toEqual({});
+    expect(parseTaskListQuery({ tag: ["urgent", "work"] })).toEqual({
+      tag: "urgent",
+    });
+  });
+
   it("drops invalid project ids", () => {
     expect(parseTaskListQuery({ project: "0" })).toEqual({});
     expect(parseTaskListQuery({ project: "-1" })).toEqual({});
@@ -117,6 +125,17 @@ describe("taskListQueryString", () => {
     ).toBe("q=Rails&status=todo&page=3");
   });
 
+  it("includes tag after project in stable key order", () => {
+    expect(
+      taskListQueryString({
+        tag: "work",
+        project: 5,
+        q: "Rails",
+        status: "todo",
+      }),
+    ).toBe("q=Rails&status=todo&project=5&tag=work");
+  });
+
   it("includes project in stable key order", () => {
     expect(
       taskListQueryString({
@@ -149,6 +168,10 @@ describe("hasTaskListFilters", () => {
     expect(hasTaskListFilters({ project: 3 })).toBe(true);
     expect(hasTaskListFilters({})).toBe(false);
   });
+
+  it("is true when a tag filter is set", () => {
+    expect(hasTaskListFilters({ tag: "work" })).toBe(true);
+  });
 });
 
 describe("taskListPageHref", () => {
@@ -167,6 +190,15 @@ describe("taskListPageHref", () => {
         1,
       ),
     ).toBe("/?q=Rails&status=todo");
+  });
+
+  it("keeps the tag filter when changing pages", () => {
+    expect(taskListPageHref({ tag: "work", q: "Rails" }, 2)).toBe(
+      "/?q=Rails&tag=work&page=2",
+    );
+    expect(taskListPageHref({ tag: "work", q: "Rails", page: 2 }, 1)).toBe(
+      "/?q=Rails&tag=work",
+    );
   });
 
   it("keeps filters and sets page when the target page is greater than 1", () => {

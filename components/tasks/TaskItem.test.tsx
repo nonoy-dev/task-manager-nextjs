@@ -63,6 +63,24 @@ describe("TaskItem due-date urgency badges", () => {
     expect(screen.getByText("今週")).toBeInTheDocument();
   });
 
+  it("links each tag to that tag filter and keeps the other list filters", () => {
+    render(
+      <TaskItem
+        task={makeTask({ tagList: ["work", "urgent"] })}
+        listQuery={{ q: "会議", status: "todo", page: 2 }}
+      />,
+    );
+
+    expect(screen.getByRole("link", { name: "work" })).toHaveAttribute(
+      "href",
+      "/?q=%E4%BC%9A%E8%AD%B0&status=todo&tag=work",
+    );
+    expect(screen.getByRole("link", { name: "urgent" })).toHaveAttribute(
+      "href",
+      "/?q=%E4%BC%9A%E8%AD%B0&status=todo&tag=urgent",
+    );
+  });
+
   it("hides urgency badges when the task is done", () => {
     render(
       <TaskItem

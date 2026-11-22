@@ -24,6 +24,25 @@ describe("TaskFilterForm", () => {
     );
   });
 
+  it("shows the active tag, keeps it in the form, and links to clear only that tag", () => {
+    const { container } = render(
+      <TaskFilterForm
+        query={{ tag: "緊急", q: "会議", status: "todo", page: 2 }}
+      />,
+    );
+
+    expect(screen.getByText("タグ: 緊急")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "解除" })).toHaveAttribute(
+      "href",
+      "/?q=%E4%BC%9A%E8%AD%B0&status=todo",
+    );
+    expect(container.querySelector('input[name="tag"]')).toHaveValue("緊急");
+    expect(screen.getByRole("link", { name: "クリア" })).toHaveAttribute(
+      "href",
+      "/",
+    );
+  });
+
   it("renders project options from props", () => {
     render(
       <TaskFilterForm

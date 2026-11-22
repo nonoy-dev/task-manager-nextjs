@@ -71,7 +71,11 @@ export default async function Home({ searchParams }: HomeProps) {
         </div>
       ) : (
         <>
-          <TaskList tasks={tasks} hasFilters={hasTaskListFilters(query)} />
+          <TaskList
+            tasks={tasks}
+            hasFilters={hasTaskListFilters(query)}
+            listQuery={query}
+          />
           {meta ? <TaskListPagination meta={meta} query={query} /> : null}
         </>
       )}

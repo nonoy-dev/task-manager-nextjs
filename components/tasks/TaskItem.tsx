@@ -15,11 +15,16 @@ import {
   taskPriorityLabel,
   taskStatusLabel,
 } from "@/lib/tasks/taskLabels";
+import {
+  taskListTagHref,
+  type TaskListQuery,
+} from "@/lib/tasks/taskListQuery";
 import { valuesFromTask } from "@/lib/tasks/valuesFromTask";
 import type { Task, TaskStatus } from "@/lib/types/task";
 
 type TaskItemProps = {
   task: Task;
+  listQuery?: TaskListQuery;
 };
 
 const DUE_DATE_ROW_CLASS: Record<DueDateUrgency, string> = {
@@ -45,7 +50,7 @@ function nextStatus(current: TaskStatus): TaskStatus {
   return "todo";
 }
 
-export function TaskItem({ task }: TaskItemProps) {
+export function TaskItem({ task, listQuery = {} }: TaskItemProps) {
   const router = useRouter();
   const dueDate = formatDueDate(task.dueDate);
   const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -130,7 +135,17 @@ export function TaskItem({ task }: TaskItemProps) {
       </p>
       {task.tagList.length > 0 && (
         <p className="mt-2 text-sm text-foreground/60">
-          {task.tagList.join(" · ")}
+          {task.tagList.map((tag, index) => (
+            <span key={`${tag}-${index}`}>
+              {index > 0 ? " · " : null}
+              <Link
+                href={taskListTagHref(listQuery, tag)}
+                className="hover:text-foreground hover:underline"
+              >
+                {tag}
+              </Link>
+            </span>
+          ))}
         </p>
       )}
       {dueDate && (

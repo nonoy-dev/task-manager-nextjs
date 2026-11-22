@@ -11,6 +11,7 @@ module Api
       tasks = apply_status_filter(tasks, params[:status])
       tasks = apply_priority_filter(tasks, params[:priority])
       tasks = apply_project_filter(tasks, params[:project])
+      tasks = apply_tag_filter(tasks, params[:tag])
       tasks = apply_sort(tasks, params[:sort], params[:direction])
 
       page = normalize_page(params[:page])
@@ -90,6 +91,22 @@ module Api
       return scope unless Task.priorities.key?(p)
 
       scope.where(priority: p)
+    end
+
+    def apply_tag_filter(scope, raw_tag)
+      tag = raw_tag.to_s.strip
+      return scope if tag.blank?
+
+      scope.where(
+        <<~SQL.squish,
+          EXISTS (
+            SELECT 1
+            FROM unnest(string_to_array(COALESCE(tasks.tags, ''), ',')) AS raw_tag
+            WHERE btrim(raw_tag) = ?
+          )
+        SQL
+        tag,
+      )
     end
 
     def apply_project_filter(scope, raw_project)

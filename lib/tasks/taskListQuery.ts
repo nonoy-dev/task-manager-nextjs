@@ -16,6 +16,7 @@ export type TaskListQuery = {
   status?: TaskStatus;
   priority?: TaskPriority;
   project?: number;
+  tag?: string;
   sort?: TaskListSort;
   direction?: TaskListDirection;
   page?: number;
@@ -26,6 +27,7 @@ export type TaskListSearchParams = {
   status?: string | string[];
   priority?: string | string[];
   project?: string | string[];
+  tag?: string | string[];
   sort?: string | string[];
   direction?: string | string[];
   page?: string | string[];
@@ -36,6 +38,7 @@ const QUERY_KEY_ORDER = [
   "status",
   "priority",
   "project",
+  "tag",
   "sort",
   "direction",
 ] as const;
@@ -103,6 +106,11 @@ export function parseTaskListQuery(
     query.project = project;
   }
 
+  const tag = firstParam(params.tag).trim();
+  if (tag) {
+    query.tag = tag;
+  }
+
   const sort = firstParam(params.sort).trim();
   if (isTaskListSort(sort)) {
     query.sort = sort;
@@ -144,6 +152,24 @@ export function taskListQueryString(query: TaskListQuery): string {
   return taskListQuerySearchParams(query).toString();
 }
 
+export function taskListHref(query: TaskListQuery): string {
+  const qs = taskListQueryString(query);
+  return qs ? `/?${qs}` : "/";
+}
+
+export function taskListTagHref(query: TaskListQuery, tag: string): string {
+  const nextQuery: TaskListQuery = { ...query, tag };
+  delete nextQuery.page;
+  return taskListHref(nextQuery);
+}
+
+export function taskListHrefWithoutTag(query: TaskListQuery): string {
+  const nextQuery: TaskListQuery = { ...query };
+  delete nextQuery.tag;
+  delete nextQuery.page;
+  return taskListHref(nextQuery);
+}
+
 export function taskListPageHref(query: TaskListQuery, page: number): string {
   const targetPage = page < 1 ? 1 : page;
   const nextQuery: TaskListQuery = { ...query };
@@ -154,10 +180,11 @@ export function taskListPageHref(query: TaskListQuery, page: number): string {
     delete nextQuery.page;
   }
 
-  const qs = taskListQueryString(nextQuery);
-  return qs ? `/?${qs}` : "/";
+  return taskListHref(nextQuery);
 }
 
 export function hasTaskListFilters(query: TaskListQuery): boolean {
-  return Boolean(query.q || query.status || query.priority || query.project);
+  return Boolean(
+    query.q || query.status || query.priority || query.project || query.tag,
+  );
 }

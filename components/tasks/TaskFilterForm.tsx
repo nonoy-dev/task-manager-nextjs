@@ -7,6 +7,7 @@ import {
 import {
   TASK_LIST_DIRECTIONS,
   TASK_LIST_SORTS,
+  taskListHrefWithoutTag,
   type TaskListDirection,
   type TaskListQuery,
   type TaskListSort,
@@ -125,6 +126,19 @@ export function TaskFilterForm({
           </select>
         </label>
       </div>
+
+      {query.tag ? (
+        <div className="flex flex-wrap items-center gap-3 text-sm text-foreground/70">
+          <span>タグ: {query.tag}</span>
+          <Link
+            href={taskListHrefWithoutTag(query)}
+            className="underline-offset-2 hover:underline"
+          >
+            解除
+          </Link>
+          <input type="hidden" name="tag" value={query.tag} />
+        </div>
+      ) : null}
 
       <div className="flex flex-wrap items-center gap-3">
         <button

@@ -162,6 +162,62 @@ RSpec.describe "Api::Tasks", type: :request do
         expect(response.parsed_body["tasks"]).to eq([])
       end
 
+      it "filters by an exact tag and ignores surrounding spaces" do
+        create(:task, user: user, title: "Tagged", status: :todo, priority: :low, tags: " work , urgent")
+        create(:task, user: user, title: "Other tag", status: :todo, priority: :low, tags: "personal")
+        create(:task, user: user, title: "Substring", status: :todo, priority: :low, tags: "network")
+        create(:task, user: user, title: "Different case", status: :todo, priority: :low, tags: "Work")
+
+        get api_tasks_path, params: { tag: "  work  " }
+
+        expect(response).to have_http_status(:ok)
+        titles = response.parsed_body["tasks"].map { |task| task["title"] }
+        expect(titles).to eq(["Tagged"])
+      end
+
+      it "does not treat the tag param as a title or description search" do
+        create(:task, user: user, title: "work notes", description: "work", status: :todo, priority: :low, tags: "personal")
+
+        get api_tasks_path, params: { tag: "work" }
+
+        expect(response).to have_http_status(:ok)
+        expect(response.parsed_body["tasks"]).to eq([])
+      end
+
+      it "returns all tasks when tag is blank" do
+        create(:task, user: user, title: "One", status: :todo, priority: :low, tags: "work")
+        create(:task, user: user, title: "Two", status: :todo, priority: :low)
+
+        get api_tasks_path, params: { tag: "   " }
+
+        expect(response).to have_http_status(:ok)
+        expect(response.parsed_body["tasks"].size).to eq(2)
+      end
+
+      it "does not return another user's task with the same tag" do
+        other = create(:user, email: "other-tag-filter@example.com")
+        create(:task, user: other, title: "Other", status: :todo, priority: :low, tags: "work")
+        create(:task, user: user, title: "Mine", status: :todo, priority: :low, tags: "work")
+
+        get api_tasks_path, params: { tag: "work" }
+
+        expect(response).to have_http_status(:ok)
+        titles = response.parsed_body["tasks"].map { |task| task["title"] }
+        expect(titles).to eq(["Mine"])
+      end
+
+      it "keeps title search independent when tag is also present" do
+        create(:task, user: user, title: "Meeting notes", status: :todo, priority: :low, tags: "personal")
+        create(:task, user: user, title: "Meeting tagged", status: :todo, priority: :low, tags: "work, urgent")
+        create(:task, user: user, title: "Other tagged", status: :todo, priority: :low, tags: "work")
+
+        get api_tasks_path, params: { q: "meeting", tag: "work" }
+
+        expect(response).to have_http_status(:ok)
+        titles = response.parsed_body["tasks"].map { |task| task["title"] }
+        expect(titles).to eq(["Meeting tagged"])
+      end
+
       it "ignores invalid project param" do
         create(:task, user: user, title: "One", status: :todo, priority: :low)
         create(:task, user: user, title: "Two", status: :todo, priority: :low)
