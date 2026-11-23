@@ -162,11 +162,13 @@ RSpec.describe "Api::Tasks", type: :request do
         expect(response.parsed_body["tasks"]).to eq([])
       end
 
-      it "filters by an exact tag and ignores surrounding spaces" do
+      it "filters by an exact normalized tag and strips the tag param" do
         create(:task, user: user, title: "Tagged", status: :todo, priority: :low, tags: " work , urgent")
         create(:task, user: user, title: "Other tag", status: :todo, priority: :low, tags: "personal")
         create(:task, user: user, title: "Substring", status: :todo, priority: :low, tags: "network")
         create(:task, user: user, title: "Different case", status: :todo, priority: :low, tags: "Work")
+
+        expect(Task.find_by!(title: "Tagged").tags).to eq("work,urgent")
 
         get api_tasks_path, params: { tag: "  work  " }
 

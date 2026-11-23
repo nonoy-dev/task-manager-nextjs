@@ -98,13 +98,7 @@ module Api
       return scope if tag.blank?
 
       scope.where(
-        <<~SQL.squish,
-          EXISTS (
-            SELECT 1
-            FROM unnest(string_to_array(COALESCE(tasks.tags, ''), ',')) AS raw_tag
-            WHERE btrim(raw_tag) = ?
-          )
-        SQL
+        "? = ANY (string_to_array(COALESCE(tasks.tags, ''), ','))",
         tag,
       )
     end

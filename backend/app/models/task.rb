@@ -10,6 +10,8 @@ class Task < ApplicationRecord
   validates :tags, length: { maximum: 50 }
   validate :project_must_belong_to_same_user
 
+  before_validation :normalize_tags
+
   def as_json(options = nil)
     super(options).merge(
       "project" => project && { "id" => project.id, "name" => project.name },
@@ -17,6 +19,18 @@ class Task < ApplicationRecord
   end
 
   private
+
+  def normalize_tags
+    return if tags.nil?
+
+    normalized = tags
+      .split(",")
+      .map(&:strip)
+      .reject(&:blank?)
+      .join(",")
+
+    self.tags = normalized.presence
+  end
 
   def project_must_belong_to_same_user
     return if project_id.blank?
