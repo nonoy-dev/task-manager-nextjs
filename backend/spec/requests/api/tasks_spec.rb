@@ -54,7 +54,7 @@ RSpec.describe "Api::Tasks", type: :request do
         expect(json["tasks"].first["title"]).to eq("Alpha")
         expect(json["tasks"].first["status"]).to eq("todo")
         expect_task_json_shape(json["tasks"].first)
-        expect(json["meta"]).to eq(
+        expect(json["meta"]).to include(
           "page" => 1,
           "per_page" => 20,
           "total" => 1,
@@ -160,6 +160,24 @@ RSpec.describe "Api::Tasks", type: :request do
 
         expect(response).to have_http_status(:ok)
         expect(response.parsed_body["tasks"]).to eq([])
+      end
+
+      it "includes tag_counts for all of the current user's tasks in meta" do
+        create(:task, user: user, title: "A", status: :todo, priority: :low, tags: "work,urgent")
+        create(:task, user: user, title: "B", status: :todo, priority: :low, tags: "work")
+        other = create(:user, email: "other-tag-counts@example.com")
+        create(:task, user: other, title: "Other", status: :todo, priority: :low, tags: "secret")
+
+        get api_tasks_path, params: { tag: "urgent" }
+
+        expect(response).to have_http_status(:ok)
+        expect(response.parsed_body["tasks"].map { |task| task["title"] }).to eq(["A"])
+        expect(response.parsed_body["meta"]["tag_counts"]).to eq(
+          [
+            { "name" => "work", "count" => 2 },
+            { "name" => "urgent", "count" => 1 },
+          ],
+        )
       end
 
       it "filters by an exact normalized tag and strips the tag param" do
@@ -340,7 +358,7 @@ RSpec.describe "Api::Tasks", type: :request do
           expect(response).to have_http_status(:ok)
           json = response.parsed_body
           expect(json["tasks"].map { |row| row["title"] }).to eq(["Task 21"])
-          expect(json["meta"]).to eq(
+          expect(json["meta"]).to include(
             "page" => 2,
             "per_page" => 20,
             "total" => 21,
@@ -358,7 +376,7 @@ RSpec.describe "Api::Tasks", type: :request do
           expect(json["tasks"].map { |row| row["title"] }).to eq(
             ["Task 21", "Task 22", "Task 23", "Task 24", "Task 25"],
           )
-          expect(json["meta"]).to eq(
+          expect(json["meta"]).to include(
             "page" => 2,
             "per_page" => 20,
             "total" => 25,
@@ -374,7 +392,7 @@ RSpec.describe "Api::Tasks", type: :request do
           expect(response).to have_http_status(:ok)
           json = response.parsed_body
           expect(json["tasks"]).to eq([])
-          expect(json["meta"]).to eq(
+          expect(json["meta"]).to include(
             "page" => 99,
             "per_page" => 20,
             "total" => 21,
@@ -406,7 +424,7 @@ RSpec.describe "Api::Tasks", type: :request do
           expect(response).to have_http_status(:ok)
           json = response.parsed_body
           expect(json["tasks"]).to eq([])
-          expect(json["meta"]).to eq(
+          expect(json["meta"]).to include(
             "page" => 1,
             "per_page" => 20,
             "total" => 0,
@@ -437,7 +455,7 @@ RSpec.describe "Api::Tasks", type: :request do
           expect(json["tasks"].map { |row| row["title"] }).to eq(
             ["Done 01", "Done 02", "Done 03"],
           )
-          expect(json["meta"]).to eq(
+          expect(json["meta"]).to include(
             "page" => 1,
             "per_page" => 20,
             "total" => 3,

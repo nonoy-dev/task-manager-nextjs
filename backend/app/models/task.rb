@@ -12,6 +12,20 @@ class Task < ApplicationRecord
 
   before_validation :normalize_tags
 
+  def self.tag_counts_for(scope)
+    counts = Hash.new(0)
+
+    scope.where.not(tags: nil).pluck(:tags).each do |raw|
+      raw.split(",").each do |tag|
+        counts[tag] += 1
+      end
+    end
+
+    counts
+      .sort_by { |name, count| [-count, name] }
+      .map { |name, count| { "name" => name, "count" => count } }
+  end
+
   def as_json(options = nil)
     super(options).merge(
       "project" => project && { "id" => project.id, "name" => project.name },

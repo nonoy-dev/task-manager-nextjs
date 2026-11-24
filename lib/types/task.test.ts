@@ -95,6 +95,10 @@ describe("parseTaskListResponse", () => {
     per_page: 20,
     total: 1,
     total_pages: 1,
+    tag_counts: [
+      { name: "work", count: 2 },
+      { name: "urgent", count: 1 },
+    ],
   };
 
   it("returns validated tasks and meta", () => {
@@ -118,6 +122,7 @@ describe("parseTaskListResponse", () => {
           per_page: 20,
           total: 0,
           total_pages: 0,
+          tag_counts: [],
         },
       }),
     ).toEqual({
@@ -127,6 +132,7 @@ describe("parseTaskListResponse", () => {
         per_page: 20,
         total: 0,
         total_pages: 0,
+        tag_counts: [],
       },
     });
   });

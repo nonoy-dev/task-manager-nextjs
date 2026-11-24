@@ -1,8 +1,9 @@
 import { RefreshableErrorBanner } from "@/components/shared/ErrorBanner";
-import { TaskCreateForm } from "@/components/tasks/TaskCreateForm";
+import { TaskCreateModal } from "@/components/tasks/TaskCreateModal";
 import { TaskFilterForm } from "@/components/tasks/TaskFilterForm";
 import { TaskList } from "@/components/tasks/TaskList";
 import { TaskListPagination } from "@/components/tasks/TaskListPagination";
+import { TaskTagSidebar } from "@/components/tasks/TaskTagSidebar";
 import {
   isUnauthorizedError,
   readApiClientError,
@@ -52,15 +53,13 @@ export default async function Home({ searchParams }: HomeProps) {
 
   return (
     <main className="p-8">
-      <h1 className="text-2xl font-semibold">タスク一覧</h1>
-      {!unauthorized && (
-        <>
-          <TaskFilterForm query={query} projects={projects} />
-          <div className="mt-4">
-            <TaskCreateForm projects={projects} />
-          </div>
-        </>
-      )}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-2xl font-semibold">タスク一覧</h1>
+        {!unauthorized ? <TaskCreateModal projects={projects} /> : null}
+      </div>
+      {!unauthorized ? (
+        <TaskFilterForm query={query} projects={projects} />
+      ) : null}
       {listError ? (
         <div className="mt-4">
           <RefreshableErrorBanner
@@ -70,14 +69,21 @@ export default async function Home({ searchParams }: HomeProps) {
           />
         </div>
       ) : (
-        <>
-          <TaskList
-            tasks={tasks}
-            hasFilters={hasTaskListFilters(query)}
-            listQuery={query}
-          />
-          {meta ? <TaskListPagination meta={meta} query={query} /> : null}
-        </>
+        <div className="mt-4 flex flex-row gap-4">
+          {meta && meta.tag_counts.length > 0 ? (
+            <div className="w-36 shrink-0 sm:w-40">
+              <TaskTagSidebar tags={meta.tag_counts} listQuery={query} />
+            </div>
+          ) : null}
+          <div className="min-w-0 flex-1">
+            <TaskList
+              tasks={tasks}
+              hasFilters={hasTaskListFilters(query)}
+              listQuery={query}
+            />
+            {meta ? <TaskListPagination meta={meta} query={query} /> : null}
+          </div>
+        </div>
       )}
     </main>
   );

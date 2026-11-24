@@ -27,15 +27,26 @@ vi.mock("@/lib/api/tasks.client", async (importOriginal) => {
 });
 
 describe("TaskCreateForm", () => {
+  const onCreated = vi.fn();
+  const onCancel = vi.fn();
+
   afterEach(() => {
     cleanup();
     createTaskMock.mockReset();
+    onCreated.mockReset();
+    onCancel.mockReset();
   });
+
+  function renderForm() {
+    return render(
+      <TaskCreateForm onCreated={onCreated} onCancel={onCancel} />,
+    );
+  }
 
   it("shows validation error when title is empty", async () => {
     const user = userEvent.setup();
 
-    render(<TaskCreateForm />);
+    renderForm();
     await user.click(screen.getByRole("button", { name: "作成" }));
 
     expect(screen.getByText("タイトルは必須です")).toBeInTheDocument();
@@ -49,7 +60,7 @@ describe("TaskCreateForm", () => {
       }),
     );
 
-    render(<TaskCreateForm />);
+    renderForm();
     await user.type(screen.getByLabelText("タイトル"), "サーバー側エラー");
     await user.click(screen.getByRole("button", { name: "作成" }));
 
@@ -64,10 +75,19 @@ describe("TaskCreateForm", () => {
     const user = userEvent.setup();
     createTaskMock.mockRejectedValueOnce(new Error(NETWORK_ERROR_MESSAGE));
 
-    render(<TaskCreateForm />);
+    renderForm();
     await user.type(screen.getByLabelText("タイトル"), "買い物");
     await user.click(screen.getByRole("button", { name: "作成" }));
 
     expect(screen.getByRole("alert")).toHaveTextContent(NETWORK_ERROR_MESSAGE);
+  });
+
+  it("calls onCancel when the cancel button is clicked", async () => {
+    const user = userEvent.setup();
+
+    renderForm();
+    await user.click(screen.getByRole("button", { name: "キャンセル" }));
+
+    expect(onCancel).toHaveBeenCalledOnce();
   });
 });

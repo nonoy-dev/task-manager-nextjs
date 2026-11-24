@@ -157,7 +157,13 @@ describe("task API fetch errors", () => {
     const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
       mockResponse(200, {
         tasks: [],
-        meta: { page: 1, per_page: 20, total: 0, total_pages: 0 },
+        meta: {
+          page: 1,
+          per_page: 20,
+          total: 0,
+          total_pages: 0,
+          tag_counts: [],
+        },
       }),
     );
 
@@ -189,7 +195,13 @@ describe("task API fetch errors", () => {
             updated_at: "2026-07-14T00:00:00.000Z",
           },
         ],
-        meta: { page: 2, per_page: 20, total: 21, total_pages: 2 },
+        meta: {
+          page: 2,
+          per_page: 20,
+          total: 21,
+          total_pages: 2,
+          tag_counts: [{ name: "work", count: 2 }],
+        },
       }),
     );
 
@@ -209,7 +221,13 @@ describe("task API fetch errors", () => {
           updated_at: "2026-07-14T00:00:00.000Z",
         },
       ],
-      meta: { page: 2, per_page: 20, total: 21, total_pages: 2 },
+      meta: {
+        page: 2,
+        per_page: 20,
+        total: 21,
+        total_pages: 2,
+        tag_counts: [{ name: "work", count: 2 }],
+      },
     });
   });
 });

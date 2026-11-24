@@ -5,6 +5,33 @@ require "rails_helper"
 RSpec.describe Task, type: :model do
   let(:user) { create(:user) }
 
+  describe ".tag_counts_for" do
+    it "aggregates distinct tags with counts, most used first" do
+      create(:task, user: user, title: "A", tags: "work,urgent")
+      create(:task, user: user, title: "B", tags: "work")
+      create(:task, user: user, title: "C", tags: "personal")
+      create(:task, user: user, title: "D", tags: nil)
+
+      expect(Task.tag_counts_for(user.tasks)).to eq(
+        [
+          { "name" => "work", "count" => 2 },
+          { "name" => "personal", "count" => 1 },
+          { "name" => "urgent", "count" => 1 },
+        ],
+      )
+    end
+
+    it "does not include another user's tags" do
+      other = create(:user)
+      create(:task, user: other, title: "Other", tags: "secret")
+      create(:task, user: user, title: "Mine", tags: "work")
+
+      expect(Task.tag_counts_for(user.tasks)).to eq(
+        [{ "name" => "work", "count" => 1 }],
+      )
+    end
+  end
+
   describe "tags normalization" do
     it "trims each tag and joins with a single comma on create" do
       task = create(:task, user: user, tags: " work , urgent ")

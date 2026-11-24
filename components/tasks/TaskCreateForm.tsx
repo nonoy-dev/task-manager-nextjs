@@ -41,9 +41,15 @@ const initialValues: TaskFormValues = {
 
 type TaskCreateFormProps = {
   projects?: readonly { id: number; name: string }[];
+  onCreated: () => void;
+  onCancel: () => void;
 };
 
-export function TaskCreateForm({ projects = [] }: TaskCreateFormProps) {
+export function TaskCreateForm({
+  projects = [],
+  onCreated,
+  onCancel,
+}: TaskCreateFormProps) {
   const router = useRouter();
   const [values, setValues] = useState<TaskFormValues>(initialValues);
   const projectOptions = projectSelectOptions(projects);
@@ -67,6 +73,7 @@ export function TaskCreateForm({ projects = [] }: TaskCreateFormProps) {
     try {
       await createTask(values);
       setValues(initialValues);
+      onCreated();
       router.refresh();
     } catch (error) {
       if (isTaskFieldValidationError(error)) {
@@ -81,11 +88,7 @@ export function TaskCreateForm({ projects = [] }: TaskCreateFormProps) {
   }
 
   return (
-    <form
-      className="rounded-lg border border-foreground/10 p-4"
-      noValidate
-      onSubmit={handleSubmit}
-    >
+    <form className="flex flex-col" noValidate onSubmit={handleSubmit}>
       <h2 className="text-lg font-medium">タスク作成</h2>
 
       <div className="mt-4 flex flex-col gap-4">
@@ -167,13 +170,23 @@ export function TaskCreateForm({ projects = [] }: TaskCreateFormProps) {
 
         {submitError && <ErrorBanner message={submitError} />}
 
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="w-fit rounded-md bg-foreground px-4 py-2 text-sm text-background disabled:opacity-50"
-        >
-          {isSubmitting ? "作成中..." : "作成"}
-        </button>
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-fit rounded-md bg-foreground px-4 py-2 text-sm text-background disabled:opacity-50"
+          >
+            {isSubmitting ? "作成中..." : "作成"}
+          </button>
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={isSubmitting}
+            className="text-sm text-foreground/70 underline-offset-2 hover:underline disabled:opacity-50"
+          >
+            キャンセル
+          </button>
+        </div>
       </div>
     </form>
   );

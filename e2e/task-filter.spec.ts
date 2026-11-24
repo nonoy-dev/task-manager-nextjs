@@ -1,11 +1,12 @@
 import { expect, test } from "@playwright/test";
-import { loginAsDemo } from "./helpers";
+import { loginAsDemo, openTaskCreateModal } from "./helpers";
 
 test("filters the task list by search query", async ({ page }) => {
   const title = `E2E Filter ${Date.now()}`;
 
   await loginAsDemo(page);
 
+  await openTaskCreateModal(page);
   await page.getByLabel("タイトル").fill(title);
   await page.getByRole("button", { name: "作成" }).click();
   await expect(page.getByRole("heading", { name: title })).toBeVisible();

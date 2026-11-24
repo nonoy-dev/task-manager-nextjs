@@ -26,6 +26,7 @@ module Api
           per_page: PER_PAGE,
           total: total,
           total_pages: total_pages,
+          tag_counts: Task.tag_counts_for(current_user_tasks),
         },
       }
     end

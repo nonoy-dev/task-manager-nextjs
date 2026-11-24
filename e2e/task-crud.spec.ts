@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { loginAsDemo } from "./helpers";
+import { loginAsDemo, openTaskCreateModal } from "./helpers";
 
 test("shows an error when login fails", async ({ page }) => {
   await page.goto("/login");
@@ -24,7 +24,7 @@ test("logs out and returns to the login page", async ({ page }) => {
   await expect(page.getByRole("button", { name: "ログアウト" })).toHaveCount(0);
 
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "タスク作成" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "追加" })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "ログアウト" })).toHaveCount(0);
 });
 
@@ -34,6 +34,7 @@ test("logs in, creates, updates, and deletes a task", async ({ page }) => {
 
   await loginAsDemo(page);
 
+  await openTaskCreateModal(page);
   await page.getByLabel("タイトル").fill(title);
   await page.getByRole("button", { name: "作成" }).click();
   await expect(page.getByRole("heading", { name: title })).toBeVisible();

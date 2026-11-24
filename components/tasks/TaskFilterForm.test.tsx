@@ -9,7 +9,7 @@ describe("TaskFilterForm", () => {
     cleanup();
   });
 
-  it("renders search, status, priority, sort, and direction fields", () => {
+  it("renders a compact filter bar", () => {
     render(<TaskFilterForm query={{}} />);
 
     expect(screen.getByLabelText("検索")).toHaveAttribute("name", "q");
@@ -24,23 +24,22 @@ describe("TaskFilterForm", () => {
     );
   });
 
-  it("shows the active tag, keeps it in the form, and links to clear only that tag", () => {
+  it("does not show tag clear UI (sidebar owns tag filters)", () => {
+    render(<TaskFilterForm query={{ tag: "緊急" }} />);
+
+    expect(screen.queryByText(/^タグ:/)).not.toBeInTheDocument();
+    expect(screen.queryByText("タグ: 緊急")).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "解除" })).not.toBeInTheDocument();
+  });
+
+  it("keeps the active tag in a hidden field so other filters can be submitted", () => {
     const { container } = render(
       <TaskFilterForm
         query={{ tag: "緊急", q: "会議", status: "todo", page: 2 }}
       />,
     );
 
-    expect(screen.getByText("タグ: 緊急")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "解除" })).toHaveAttribute(
-      "href",
-      "/?q=%E4%BC%9A%E8%AD%B0&status=todo",
-    );
     expect(container.querySelector('input[name="tag"]')).toHaveValue("緊急");
-    expect(screen.getByRole("link", { name: "クリア" })).toHaveAttribute(
-      "href",
-      "/",
-    );
   });
 
   it("renders project options from props", () => {
@@ -57,7 +56,7 @@ describe("TaskFilterForm", () => {
     const projectSelect = screen.getByLabelText("プロジェクト");
     expect(projectSelect).toHaveAttribute("name", "project");
     expect(
-      within(projectSelect).getByRole("option", { name: "すべて" }),
+      within(projectSelect).getByRole("option", { name: "プロジェクト" }),
     ).toHaveValue("");
     expect(
       within(projectSelect).getByRole("option", { name: "Alpha" }),

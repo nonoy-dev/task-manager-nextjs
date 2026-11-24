@@ -33,12 +33,20 @@ export type TaskDto = z.infer<typeof taskDtoSchema>;
 
 const taskDtoListSchema = z.array(taskDtoSchema);
 
+const taskTagCountSchema = z.object({
+  name: z.string(),
+  count: z.number().int().positive(),
+});
+
 const taskListMetaSchema = z.object({
   page: z.number().int().positive(),
   per_page: z.number().int().positive(),
   total: z.number().int().nonnegative(),
   total_pages: z.number().int().nonnegative(),
+  tag_counts: z.array(taskTagCountSchema),
 });
+
+export type TaskTagCount = z.infer<typeof taskTagCountSchema>;
 
 const taskListResponseSchema = z.object({
   tasks: taskDtoListSchema,

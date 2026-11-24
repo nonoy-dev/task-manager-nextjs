@@ -12,7 +12,13 @@ describe("TaskListPagination", () => {
     render(
       <TaskListPagination
         query={{}}
-        meta={{ page: 2, per_page: 20, total: 21, total_pages: 2 }}
+        meta={{
+          page: 2,
+          per_page: 20,
+          total: 21,
+          total_pages: 2,
+          tag_counts: [],
+        }}
       />,
     );
 
@@ -24,7 +30,13 @@ describe("TaskListPagination", () => {
     const { container } = render(
       <TaskListPagination
         query={{}}
-        meta={{ page: 1, per_page: 20, total: 5, total_pages: 1 }}
+        meta={{
+          page: 1,
+          per_page: 20,
+          total: 5,
+          total_pages: 1,
+          tag_counts: [],
+        }}
       />,
     );
 
@@ -35,7 +47,13 @@ describe("TaskListPagination", () => {
     const { container } = render(
       <TaskListPagination
         query={{}}
-        meta={{ page: 1, per_page: 20, total: 0, total_pages: 0 }}
+        meta={{
+          page: 1,
+          per_page: 20,
+          total: 0,
+          total_pages: 0,
+          tag_counts: [],
+        }}
       />,
     );
 
@@ -46,7 +64,13 @@ describe("TaskListPagination", () => {
     render(
       <TaskListPagination
         query={{ q: "Rails", status: "todo", page: 2 }}
-        meta={{ page: 2, per_page: 20, total: 45, total_pages: 3 }}
+        meta={{
+          page: 2,
+          per_page: 20,
+          total: 45,
+          total_pages: 3,
+          tag_counts: [],
+        }}
       />,
     );
 
@@ -64,7 +88,13 @@ describe("TaskListPagination", () => {
     render(
       <TaskListPagination
         query={{ q: "Rails" }}
-        meta={{ page: 1, per_page: 20, total: 25, total_pages: 2 }}
+        meta={{
+          page: 1,
+          per_page: 20,
+          total: 25,
+          total_pages: 2,
+          tag_counts: [],
+        }}
       />,
     );
 
@@ -80,7 +110,13 @@ describe("TaskListPagination", () => {
     render(
       <TaskListPagination
         query={{ q: "Rails", page: 2 }}
-        meta={{ page: 2, per_page: 20, total: 25, total_pages: 2 }}
+        meta={{
+          page: 2,
+          per_page: 20,
+          total: 25,
+          total_pages: 2,
+          tag_counts: [],
+        }}
       />,
     );
 

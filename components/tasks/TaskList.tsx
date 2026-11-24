@@ -17,7 +17,6 @@ export function TaskList({
   if (tasks.length === 0) {
     return (
       <EmptyState
-        className="mt-4"
         message={
           hasFilters
             ? "条件に一致するタスクはありません。"
@@ -28,7 +27,7 @@ export function TaskList({
   }
 
   return (
-    <ul className="mt-4 flex flex-col gap-3">
+    <ul className="flex flex-col gap-3">
       {tasks.map((task) => (
         <TaskItem key={task.id} task={task} listQuery={listQuery} />
       ))}
