@@ -19,15 +19,16 @@ import {
   TASK_PRIORITY_OPTIONS,
   TASK_STATUS_OPTIONS,
 } from "@/lib/tasks/taskLabels";
+import { normalizeTagsInput } from "@/lib/tasks/suggestTags";
 import {
   DESCRIPTION_MAX_LENGTH,
-  TAGS_MAX_LENGTH,
   TITLE_MAX_LENGTH,
   todayDateString,
   validateFormValues,
   type TaskFormErrors,
   type TaskFormValues,
 } from "@/lib/tasks/validateTaskForm";
+import { TaskTagsField } from "./TaskTagsField";
 
 const initialValues: TaskFormValues = {
   title: "",
@@ -41,12 +42,14 @@ const initialValues: TaskFormValues = {
 
 type TaskCreateFormProps = {
   projects?: readonly { id: number; name: string }[];
+  existingTags?: readonly string[];
   onCreated: () => void;
   onCancel: () => void;
 };
 
 export function TaskCreateForm({
   projects = [],
+  existingTags = [],
   onCreated,
   onCancel,
 }: TaskCreateFormProps) {
@@ -60,7 +63,13 @@ export function TaskCreateForm({
   async function handleSubmit(event: React.SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    const nextErrors = validateFormValues(values);
+    const nextValues = {
+      ...values,
+      tags: normalizeTagsInput(values.tags),
+    };
+    setValues(nextValues);
+
+    const nextErrors = validateFormValues(nextValues);
     if (Object.keys(nextErrors).length > 0) {
       setErrors(nextErrors);
       return;
@@ -71,7 +80,7 @@ export function TaskCreateForm({
     setIsSubmitting(true);
 
     try {
-      await createTask(values);
+      await createTask(nextValues);
       setValues(initialValues);
       onCreated();
       router.refresh();
@@ -156,11 +165,9 @@ export function TaskCreateForm({
           }}
         />
 
-        <FormTextField
-          label="タグ（カンマ区切り）"
+        <TaskTagsField
           value={values.tags}
-          maxLength={TAGS_MAX_LENGTH}
-          placeholder="work,urgent"
+          existingTags={existingTags}
           error={errors.tags}
           onChange={(tags) => {
             setValues((prev) => ({ ...prev, tags }));

@@ -55,7 +55,12 @@ export default async function Home({ searchParams }: HomeProps) {
     <main className="p-8">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold">タスク一覧</h1>
-        {!unauthorized ? <TaskCreateModal projects={projects} /> : null}
+        {!unauthorized ? (
+          <TaskCreateModal
+            projects={projects}
+            existingTags={meta?.tag_counts.map((tag) => tag.name) ?? []}
+          />
+        ) : null}
       </div>
       {!unauthorized ? (
         <TaskFilterForm query={query} projects={projects} />

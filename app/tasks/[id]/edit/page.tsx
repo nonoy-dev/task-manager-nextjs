@@ -8,7 +8,7 @@ import {
 } from "@/lib/api/errors";
 import { fetchProjects } from "@/lib/api/projects";
 import { isTaskNotFoundError } from "@/lib/api/tasks.client";
-import { fetchTask } from "@/lib/api/tasks.server";
+import { fetchTask, fetchTasks } from "@/lib/api/tasks.server";
 import { projectsFromDto } from "@/lib/types/project";
 import { taskFromDto } from "@/lib/types/task";
 
@@ -57,10 +57,17 @@ export default async function TaskEditPage({ params }: TaskEditPageProps) {
 
   const task = taskFromDto(taskDto);
   let projects: ReturnType<typeof projectsFromDto> = [];
+  let existingTags: string[] = [];
   try {
     projects = projectsFromDto(await fetchProjects());
   } catch {
     projects = [];
+  }
+  try {
+    const list = await fetchTasks({});
+    existingTags = list.meta.tag_counts.map((tag) => tag.name);
+  } catch {
+    existingTags = [];
   }
 
   return (
@@ -72,7 +79,11 @@ export default async function TaskEditPage({ params }: TaskEditPageProps) {
         ← 一覧に戻る
       </Link>
       <h1 className="mt-4 text-2xl font-semibold">タスク編集</h1>
-      <TaskEditForm task={task} projects={projects} />
+      <TaskEditForm
+        task={task}
+        projects={projects}
+        existingTags={existingTags}
+      />
     </main>
   );
 }

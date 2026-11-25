@@ -39,6 +39,18 @@ RSpec.describe Task, type: :model do
       expect(task.reload.tags).to eq("work,urgent")
     end
 
+    it "removes duplicate tags while preserving first-seen order" do
+      task = create(:task, user: user, tags: "work, urgent, work")
+
+      expect(task.reload.tags).to eq("work,urgent")
+    end
+
+    it "lowercases tags and treats case variants as duplicates" do
+      task = create(:task, user: user, tags: "Work, URGENT, work")
+
+      expect(task.reload.tags).to eq("work,urgent")
+    end
+
     it "normalizes tags on update" do
       task = create(:task, user: user, tags: "personal")
 

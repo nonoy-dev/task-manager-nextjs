@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { TaskCreateForm } from "./TaskCreateForm";
 
 type TaskCreateModalProps = {
   projects?: readonly { id: number; name: string }[];
+  existingTags?: readonly string[];
 };
 
 function supportsDialogClosedBy() {
@@ -41,8 +42,12 @@ function attachBackdropClickClose(dialog: HTMLDialogElement) {
   return () => dialog.removeEventListener("click", handleClick);
 }
 
-export function TaskCreateModal({ projects = [] }: TaskCreateModalProps) {
+export function TaskCreateModal({
+  projects = [],
+  existingTags = [],
+}: TaskCreateModalProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const [formKey, setFormKey] = useState(0);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -51,6 +56,20 @@ export function TaskCreateModal({ projects = [] }: TaskCreateModalProps) {
     }
 
     return attachBackdropClickClose(dialog);
+  }, []);
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) {
+      return;
+    }
+
+    function handleClose() {
+      setFormKey((key) => key + 1);
+    }
+
+    dialog.addEventListener("close", handleClose);
+    return () => dialog.removeEventListener("close", handleClose);
   }, []);
 
   function openDialog() {
@@ -77,7 +96,9 @@ export function TaskCreateModal({ projects = [] }: TaskCreateModalProps) {
       >
         <div className="p-4">
           <TaskCreateForm
+            key={formKey}
             projects={projects}
+            existingTags={existingTags}
             onCreated={closeDialog}
             onCancel={closeDialog}
           />

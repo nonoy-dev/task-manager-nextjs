@@ -39,8 +39,9 @@ class Task < ApplicationRecord
 
     normalized = tags
       .split(",")
-      .map(&:strip)
+      .map { |tag| tag.strip.downcase }
       .reject(&:blank?)
+      .uniq
       .join(",")
 
     self.tags = normalized.presence
