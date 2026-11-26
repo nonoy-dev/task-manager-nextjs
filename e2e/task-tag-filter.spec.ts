@@ -12,13 +12,13 @@ test("filters the task list from a tag link and clears only that tag", async ({
 
   await openTaskCreateModal(page);
   await page.getByLabel("タイトル").fill(networkTitle);
-  await page.getByLabel("タグ（カンマ区切り）").fill("network");
+  await page.getByLabel("タグ").fill("network");
   await page.getByRole("button", { name: "作成" }).click();
   await expect(page.getByRole("heading", { name: networkTitle })).toBeVisible();
 
   await openTaskCreateModal(page);
   await page.getByLabel("タイトル").fill(workTitle);
-  await page.getByLabel("タグ（カンマ区切り）").fill("work, urgent");
+  await page.getByLabel("タグ").fill("work, urgent");
   await page.getByRole("button", { name: "作成" }).click();
   await expect(page.getByRole("heading", { name: workTitle })).toBeVisible();
 

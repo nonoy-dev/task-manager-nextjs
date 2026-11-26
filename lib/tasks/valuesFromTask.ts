@@ -8,7 +8,8 @@ export function valuesFromTask(task: Task): TaskMutationInput {
     status: task.status,
     priority: task.priority,
     dueDate: task.dueDate ? task.dueDate.slice(0, 10) : "",
-    tags: task.tagList.join(","),
+    tags:
+      task.tagList.length > 0 ? `${task.tagList.join(",")},` : "",
     projectId: task.projectId != null ? String(task.projectId) : "",
   };
 }

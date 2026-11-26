@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  joinTagsInput,
   normalizeTagsInput,
   replaceLastTag,
   suggestTags,
@@ -49,9 +50,23 @@ describe("suggestTags", () => {
 });
 
 describe("replaceLastTag", () => {
-  it("replaces only the last segment", () => {
-    expect(replaceLastTag("wo", "work")).toEqual("work");
-    expect(replaceLastTag("a, ur", "urgent")).toEqual("a,urgent");
+  it("replaces only the last segment and marks it confirmed", () => {
+    expect(replaceLastTag("wo", "work")).toEqual("work,");
+    expect(replaceLastTag("a, ur", "urgent")).toEqual("a,urgent,");
+  });
+});
+
+describe("joinTagsInput", () => {
+  it("keeps a lone draft without a trailing comma", () => {
+    expect(joinTagsInput([], "wor")).toBe("wor");
+  });
+
+  it("uses a trailing comma when draft is empty so chips stay confirmed", () => {
+    expect(joinTagsInput(["work", "urgent"], "")).toBe("work,urgent,");
+  });
+
+  it("joins completed tags with the current draft", () => {
+    expect(joinTagsInput(["work"], "ur")).toBe("work,ur");
   });
 });
 

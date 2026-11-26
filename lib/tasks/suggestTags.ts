@@ -1,6 +1,6 @@
 const DEFAULT_LIMIT = 5;
 
-function lastTagParts(tagsInput: string): {
+export function lastTagParts(tagsInput: string): {
   completed: string[];
   draft: string;
 } {
@@ -12,6 +12,16 @@ function lastTagParts(tagsInput: string): {
     .filter((part) => part.length > 0);
 
   return { completed, draft };
+}
+
+export function joinTagsInput(
+  completed: readonly string[],
+  draft: string,
+): string {
+  if (completed.length === 0) {
+    return draft;
+  }
+  return `${completed.join(",")},${draft}`;
 }
 
 export function suggestTags(
@@ -41,7 +51,7 @@ export function suggestTags(
 
 export function replaceLastTag(tagsInput: string, suggestion: string): string {
   const { completed } = lastTagParts(tagsInput);
-  return [...completed, suggestion].join(",");
+  return joinTagsInput([...completed, suggestion], "");
 }
 
 export function normalizeTagsInput(tagsInput: string): string {
