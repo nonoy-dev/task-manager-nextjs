@@ -19,7 +19,7 @@ module Api
 
     def attention_tasks
       today = Time.zone.today
-      scope = current_user_tasks.where.not(status: :done).where.not(due_date: nil)
+      scope = current_user_tasks.includes(:tags).where.not(status: :done).where.not(due_date: nil)
 
       overdue = scope.where("due_date < ?", today).to_a
       due_today = scope.where(due_date: today).to_a

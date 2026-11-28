@@ -163,10 +163,10 @@ RSpec.describe "Api::Tasks", type: :request do
       end
 
       it "includes tag_counts for all of the current user's tasks in meta" do
-        create(:task, user: user, title: "A", status: :todo, priority: :low, tags: "work,urgent")
-        create(:task, user: user, title: "B", status: :todo, priority: :low, tags: "work")
+        create(:task, user: user, title: "A", status: :todo, priority: :low, tag_names: %w[work urgent])
+        create(:task, user: user, title: "B", status: :todo, priority: :low, tag_names: %w[work])
         other = create(:user, email: "other-tag-counts@example.com")
-        create(:task, user: other, title: "Other", status: :todo, priority: :low, tags: "secret")
+        create(:task, user: other, title: "Other", status: :todo, priority: :low, tag_names: %w[secret])
 
         get api_tasks_path, params: { tag: "urgent" }
 
@@ -181,22 +181,22 @@ RSpec.describe "Api::Tasks", type: :request do
       end
 
       it "filters by an exact normalized tag and strips the tag param" do
-        create(:task, user: user, title: "Tagged", status: :todo, priority: :low, tags: " work , urgent")
-        create(:task, user: user, title: "Other tag", status: :todo, priority: :low, tags: "personal")
-        create(:task, user: user, title: "Substring", status: :todo, priority: :low, tags: "network")
-        create(:task, user: user, title: "Different case", status: :todo, priority: :low, tags: "Work")
+        create(:task, user: user, title: "Tagged", status: :todo, priority: :low, tag_names: [" work ", " urgent"])
+        create(:task, user: user, title: "Other tag", status: :todo, priority: :low, tag_names: %w[personal])
+        create(:task, user: user, title: "Substring", status: :todo, priority: :low, tag_names: %w[network])
+        create(:task, user: user, title: "Different case", status: :todo, priority: :low, tag_names: %w[Work])
 
-        expect(Task.find_by!(title: "Tagged").tags).to eq("work,urgent")
+        expect(Task.find_by!(title: "Tagged").tag_names).to eq(%w[work urgent])
 
         get api_tasks_path, params: { tag: "  work  " }
 
         expect(response).to have_http_status(:ok)
         titles = response.parsed_body["tasks"].map { |task| task["title"] }
-        expect(titles).to eq(["Tagged"])
+        expect(titles).to contain_exactly("Tagged", "Different case")
       end
 
       it "does not treat the tag param as a title or description search" do
-        create(:task, user: user, title: "work notes", description: "work", status: :todo, priority: :low, tags: "personal")
+        create(:task, user: user, title: "work notes", description: "work", status: :todo, priority: :low, tag_names: %w[personal])
 
         get api_tasks_path, params: { tag: "work" }
 
@@ -205,7 +205,7 @@ RSpec.describe "Api::Tasks", type: :request do
       end
 
       it "returns all tasks when tag is blank" do
-        create(:task, user: user, title: "One", status: :todo, priority: :low, tags: "work")
+        create(:task, user: user, title: "One", status: :todo, priority: :low, tag_names: %w[work])
         create(:task, user: user, title: "Two", status: :todo, priority: :low)
 
         get api_tasks_path, params: { tag: "   " }
@@ -216,8 +216,8 @@ RSpec.describe "Api::Tasks", type: :request do
 
       it "does not return another user's task with the same tag" do
         other = create(:user, email: "other-tag-filter@example.com")
-        create(:task, user: other, title: "Other", status: :todo, priority: :low, tags: "work")
-        create(:task, user: user, title: "Mine", status: :todo, priority: :low, tags: "work")
+        create(:task, user: other, title: "Other", status: :todo, priority: :low, tag_names: %w[work])
+        create(:task, user: user, title: "Mine", status: :todo, priority: :low, tag_names: %w[work])
 
         get api_tasks_path, params: { tag: "work" }
 
@@ -227,9 +227,9 @@ RSpec.describe "Api::Tasks", type: :request do
       end
 
       it "keeps title search independent when tag is also present" do
-        create(:task, user: user, title: "Meeting notes", status: :todo, priority: :low, tags: "personal")
-        create(:task, user: user, title: "Meeting tagged", status: :todo, priority: :low, tags: "work, urgent")
-        create(:task, user: user, title: "Other tagged", status: :todo, priority: :low, tags: "work")
+        create(:task, user: user, title: "Meeting notes", status: :todo, priority: :low, tag_names: %w[personal])
+        create(:task, user: user, title: "Meeting tagged", status: :todo, priority: :low, tag_names: ["work", " urgent"])
+        create(:task, user: user, title: "Other tagged", status: :todo, priority: :low, tag_names: %w[work])
 
         get api_tasks_path, params: { q: "meeting", tag: "work" }
 
@@ -545,6 +545,7 @@ RSpec.describe "Api::Tasks", type: :request do
                    description: "Details",
                    status: "todo",
                    priority: "medium",
+                   tags: ["Work", " urgent "],
                  },
                },
                as: :json
@@ -555,6 +556,7 @@ RSpec.describe "Api::Tasks", type: :request do
         expect(json["title"]).to eq("New from API")
         expect(json["status"]).to eq("todo")
         expect(json["priority"]).to eq("medium")
+        expect(json["tags"]).to eq(%w[work urgent])
         expect(user.tasks.find(json["id"]).user_id).to eq(user.id)
         expect_task_json_shape(json)
       end
@@ -637,13 +639,13 @@ RSpec.describe "Api::Tasks", type: :request do
         )
       end
 
-      it "returns 422 when tags exceed 50 characters" do
+      it "returns 422 when a tag exceeds 20 characters" do
         expect {
           post api_tasks_path,
                params: {
                  task: {
                    title: "Ok title",
-                   tags: "a" * 51,
+                   tags: ["a" * 21],
                  },
                },
                as: :json
@@ -651,7 +653,7 @@ RSpec.describe "Api::Tasks", type: :request do
 
         expect(response).to have_http_status(:unprocessable_content)
         expect(response.parsed_body["errors"]).to eq(
-          "tags" => ["is too long (maximum is 50 characters)"],
+          "tags" => ["is too long (maximum is 20 characters)"],
         )
       end
 
@@ -662,12 +664,13 @@ RSpec.describe "Api::Tasks", type: :request do
                  task: {
                    title: "Optional fields blank",
                    description: "",
-                   tags: "",
+                   tags: [],
                  },
                },
                as: :json
         }.to change { user.tasks.count }.by(1)
         expect(response).to have_http_status(:created)
+        expect(response.parsed_body["tags"]).to eq([])
       end
 
       it "creates a task with the current user's project_id" do

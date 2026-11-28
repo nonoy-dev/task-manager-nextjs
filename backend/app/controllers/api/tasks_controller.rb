@@ -17,7 +17,7 @@ module Api
       page = normalize_page(params[:page])
       total = tasks.count
       total_pages = total.zero? ? 0 : (total.to_f / PER_PAGE).ceil
-      page_tasks = tasks.includes(:project).limit(PER_PAGE).offset((page - 1) * PER_PAGE)
+      page_tasks = tasks.includes(:project, :tags).limit(PER_PAGE).offset((page - 1) * PER_PAGE)
 
       render json: {
         tasks: page_tasks,
@@ -36,7 +36,9 @@ module Api
     end
 
     def create
-      task = current_user_tasks.build(task_params)
+      permitted = permitted_task
+      task = current_user_tasks.build(permitted.except(:tags))
+      assign_tags(task, permitted)
 
       if task.save
         render json: task, status: :created
@@ -46,7 +48,11 @@ module Api
     end
 
     def update
-      if @task.update(task_params)
+      permitted = permitted_task
+      @task.assign_attributes(permitted.except(:tags))
+      assign_tags(@task, permitted)
+
+      if @task.save
         render json: @task
       else
         render json: { errors: @task.errors }, status: :unprocessable_content
@@ -61,7 +67,7 @@ module Api
     private
 
     def set_task
-      @task = current_user_tasks.includes(:project).find(params[:id])
+      @task = current_user_tasks.includes(:project, :tags).find(params[:id])
     rescue ActiveRecord::RecordNotFound
       render json: { error: "Task not found" }, status: :not_found
     end
@@ -95,12 +101,11 @@ module Api
     end
 
     def apply_tag_filter(scope, raw_tag)
-      tag = raw_tag.to_s.strip
+      tag = raw_tag.to_s.strip.downcase
       return scope if tag.blank?
 
       scope.where(
-        "? = ANY (string_to_array(COALESCE(tasks.tags, ''), ','))",
-        tag,
+        id: TaskTag.joins(:tag).where(tags: { name: tag, user_id: current_user.id }).select(:task_id),
       )
     end
 
@@ -132,16 +137,22 @@ module Api
       page < 1 ? 1 : page
     end
 
-    def task_params
+    def permitted_task
       params.require(:task).permit(
         :title,
         :description,
         :status,
         :priority,
         :due_date,
-        :tags,
         :project_id,
+        tags: [],
       )
+    end
+
+    def assign_tags(task, permitted)
+      return unless permitted.key?(:tags)
+
+      task.tag_names = permitted[:tags] || []
     end
   end
 end

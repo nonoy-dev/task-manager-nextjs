@@ -23,7 +23,7 @@ seed_tasks = [
     status: :todo,
     priority: :medium,
     due_date: Time.zone.today + 2,
-    tags: "personal,errand",
+    tag_names: %w[personal errand],
     project: personal,
   },
   {
@@ -32,7 +32,7 @@ seed_tasks = [
     status: :in_progress,
     priority: :high,
     due_date: Time.zone.today + 1,
-    tags: "work,report",
+    tag_names: %w[work report],
     project: work,
   },
   {
@@ -41,7 +41,7 @@ seed_tasks = [
     status: :done,
     priority: :low,
     due_date: Time.zone.today - 7,
-    tags: "personal,health",
+    tag_names: %w[personal health],
     project: nil,
   },
 ]
@@ -52,7 +52,7 @@ seed_tasks.each do |attrs|
     task.status = attrs[:status]
     task.priority = attrs[:priority]
     task.due_date = attrs[:due_date]
-    task.tags = attrs[:tags]
+    task.tag_names = attrs[:tag_names]
     task.project = attrs[:project]
   end
 end
